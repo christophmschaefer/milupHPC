@@ -395,7 +395,7 @@ __global__ void SPH::Kernel::internalForces(::SPH::SPH_kernel kernel, Material *
             //    cudaTerminate("accels[0] = %e, mass = %e, pij = %e, dWdx[0] = %e\n", accels[0],
             //                  particles->mass[j], pij, dWdx[0]);
             //}
-            drhodt += particles->rho[i]/particles->rho[j] * particles->mass[j] * vvnablaW;
+            drhodt += particles->rho[i]/particles->rho[j] * particles->mass[j] * vvnablaW; // calc drhodt TODO: delete this comment
 
 #if INTEGRATE_SML
             // minus since vvnablaW is v_i - v_j \nabla W_ij

@@ -160,6 +160,11 @@ void Miluphpc::distributionFromFile(const std::string& filename) {
 
     // containers to be filled
     std::vector<real> m, u;
+#if SPH_SIM
+#if INTEGRATE_DENSITY
+    std::vector<real> rho;
+#endif
+#endif
     std::vector<std::vector<real>> x, v;
     std::vector<integer> materialId;
 
@@ -173,6 +178,9 @@ void Miluphpc::distributionFromFile(const std::string& filename) {
 #if INTEGRATE_ENERGY
     HighFive::DataSet h5_u = file.getDataSet("/u");
 #endif
+#if INTEGRATE_DENSITY
+    HighFive::DataSet h5_rho = file.getDataSet("/rho");
+#endif
 #endif
 
     // read data
@@ -184,6 +192,9 @@ void Miluphpc::distributionFromFile(const std::string& filename) {
     //TODO: when do I want to read in the (internal) energy?
 #if INTEGRATE_ENERGY
     h5_u.read(u);
+#endif
+#if INTEGRATE_DENSITY
+    h5_rho.read(rho);
 #endif
 #endif
 
@@ -217,6 +228,12 @@ void Miluphpc::distributionFromFile(const std::string& filename) {
 #if INTEGRATE_ENERGY
         particleHandler->h_particles->e[i] = u[j];
 #endif
+#if INTEGRATE_DENSITY
+        particleHandler->h_particles->rho[i] = rho[j];
+        //if (j == 12) { //(i % 1000 == 0) {
+        //   printf("density: rho[%i] = %e and rho[%i] = %e \n", i, particleHandler->h_particles->rho[i], j, rho[j]);
+        //}
+#endif
         particleHandler->h_particles->materialId[i] = materialId[j];
         //particleHandler->h_particles->sml[i] = simulationParameters.sml;
         particleHandler->h_particles->sml[i] = materialHandler->h_materials[materialId[j]].sml;
@@ -241,7 +258,10 @@ void Miluphpc::prepareSimulation() {
 #if SPH_SIM
     //TODO: problem: (e.g.) cs should not be copied....
     //particleHandler->copySPH(To::device);
-    //cuda::copy(particleHandler->h_rho, particleHandler->d_rho, numParticles, To::device);
+    // TODO: Move this into copyDistribution-function of the particle handler
+#if INTEGRATE_DENSITY
+    cuda::copy(particleHandler->h_rho, particleHandler->d_rho, numParticles, To::device);
+#endif
     //cuda::copy(particleHandler->h_p, particleHandler->d_p, numParticles, To::device);
     cuda::copy(particleHandler->h_e, particleHandler->d_e, numParticles, To::device);
     cuda::copy(particleHandler->h_sml, particleHandler->d_sml, numParticles, To::device);
@@ -2547,7 +2567,7 @@ real Miluphpc::parallel_sph() {
     sendParticles(d_collectedEntries, &particleHandler->d_cs[numParticlesLocal], particleSendLengths,
                   particleReceiveLengths);
 
-    // cs-entry particle exchange
+    // cs-entry particle exchange - should be internal energy?
     CudaUtils::Kernel::Launch::collectValues(d_particles2SendIndices, particleHandler->d_e, d_collectedEntries,
                                              particleTotalSendLength);
     sendParticles(d_collectedEntries, &particleHandler->d_e[numParticlesLocal], particleSendLengths,
@@ -2570,7 +2590,9 @@ real Miluphpc::parallel_sph() {
     gpuErrorcheck(cudaMemset(buffer->d_integerVal, 0, sizeof(integer)));
     CudaUtils::Kernel::Launch::findDuplicateEntries(&particleHandler->d_x[0],
                                                     &particleHandler->d_y[0],
+#if DIM == 3
                                                     &particleHandler->d_z[0],
+#endif
                                                     buffer->d_integerVal,
                                                     numParticlesLocal + particleTotalReceiveLength);
     integer duplicates;
@@ -2737,6 +2759,7 @@ real Miluphpc::parallel_sph() {
     //  * calculatePressure
     //  * internalForces
 
+#if INTEGRATE_DENSITY == 0 //only calculate density via Kernelsum, when it is not integrated
     Logger(DEBUG) << "calculate density";
     // -----------------------------------------------------------------------------------------------------------------
     time = SPH::Kernel::Launch::calculateDensity(kernelHandler.kernel, treeHandler->d_tree,
@@ -2745,7 +2768,7 @@ real Miluphpc::parallel_sph() {
     // -----------------------------------------------------------------------------------------------------------------
     Logger(TIME) << "sph: calculateDensity: " << time << " ms";
     profiler.value2file(ProfilerIds::Time::SPH::density, time);
-
+#endif
     Logger(DEBUG) << "calculate sound speed";
     // -----------------------------------------------------------------------------------------------------------------
     time = SPH::Kernel::Launch::calculateSoundSpeed(particleHandler->d_particles, materialHandler->d_materials,
@@ -2786,12 +2809,13 @@ real Miluphpc::parallel_sph() {
     sendParticles(d_collectedEntries, &particleHandler->d_p[numParticlesLocal], particleSendLengths,
                   particleReceiveLengths);
 
+#if INTEGRATE_DENSITY == 0
     // rho-entry particle exchange
     CudaUtils::Kernel::Launch::collectValues(d_particles2SendIndices, particleHandler->d_rho, d_collectedEntries,
                                                                       particleTotalSendLength);
     sendParticles(d_collectedEntries, &particleHandler->d_rho[numParticlesLocal], particleSendLengths,
                   particleReceiveLengths);
-
+#endif
     // cs-entry particle exchange
     CudaUtils::Kernel::Launch::collectValues(d_particles2SendIndices, particleHandler->d_cs, d_collectedEntries,
                                              particleTotalSendLength);
@@ -3311,6 +3335,10 @@ real Miluphpc::particles2file(int step) {
     HighFive::DataSet h5_sml = h5file.createDataSet<real>("/sml", HighFive::DataSpace(sumParticles));
     HighFive::DataSet h5_noi = h5file.createDataSet<integer>("/noi", HighFive::DataSpace(sumParticles));
     HighFive::DataSet h5_cs = h5file.createDataSet<real>("/cs", HighFive::DataSpace(sumParticles));
+/*#if INTEGRATE_DENSITY
+    HighFive::DataSet h5_drho = h5file.createDataSet<real>("/drho", HighFive::DataSpace(sumParticles));
+#endif*/
+    // TODO: add other variables for Solids etc., drho/dt?
 #endif
 
     HighFive::DataSet h5_totalEnergy;
@@ -3333,6 +3361,9 @@ real Miluphpc::particles2file(int step) {
     std::vector<int> particleProc;
 #if SPH_SIM
     std::vector<real> rho, p, e, sml, cs;
+/*#if INTEGRATE_DENSITY
+    std::vector<real> drho;
+#endif*/
     std::vector<integer> noi;
 #endif
 

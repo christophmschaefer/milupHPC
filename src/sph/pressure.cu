@@ -14,6 +14,11 @@ namespace EOS {
         //}
     }
 
+    __device__ void murnaghan(Material *materials, Particles *particles, int index){
+        particles->p[index]= (materials[particles->materialId[index]].eos.bulk_modulus/materials[particles->materialId[index]].eos.n)*
+                (pow(particles->rho[index]/materials[particles->materialId[index]].eos.rho_0, materials[particles->materialId[index]].eos.n) - 1.0);
+    }
+
     __device__ void isothermalGas(Material *materials, Particles *particles, int index) {
         //printf("isothermalGas...\n");
         particles->p[index] = 41255.407 * particles->rho[index];
@@ -56,6 +61,10 @@ namespace SPH {
                 switch (materials[particles->materialId[i]].eos.type) {
                     case EquationOfStates::EOS_TYPE_POLYTROPIC_GAS: {
                         ::EOS::polytropicGas(materials, particles, i);
+                    }
+                        break;
+                    case EquationOfStates::EOS_TYPE_MURNAGHAN: {
+                        ::EOS::murnaghan(materials, particles, i);
                     }
                         break;
                     case EquationOfStates::EOS_TYPE_ISOTHERMAL_GAS: {

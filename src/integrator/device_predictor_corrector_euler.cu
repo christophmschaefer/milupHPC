@@ -182,7 +182,7 @@ namespace PredictorCorrectorEulerNS {
 // TODO: some SPH flag?
 #if INTEGRATE_DENSITY
                 particles->rho[i] = particles->rho[i] + dt/2 * (predictor->drhodt[i] + particles->drhodt[i]);
-                particles->drhodt[i] = 0.5 * (predictor->drhodt[i] + particles->drhodt[i]);
+                particles->drhodt[i] = 0.5 * (predictor->drhodt[i] + particles->drhodt[i]); // not needed? Debugging purposes?
                 //if (i == 12) { //(i % 1000 == 0) {
                 //    printf("corrector: rho[%i] = %e + %e/2 * (%e + %e)\n", i, particles->rho[i], dt, predictor->drhodt[i],
                 //           particles->drhodt[i]);
@@ -244,6 +244,7 @@ namespace PredictorCorrectorEulerNS {
 #else
                 //predictor->rho[i] = particles->rho[i];
 #endif
+//TODO: add other quantities --> solids
 #if INTEGRATE_ENERGY
                 predictor->e[i] = particles->e[i] + dt * particles->dedt[i];
                 // TODO: in principle there should not be a energy floor (but needed for sedov)

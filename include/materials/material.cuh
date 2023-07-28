@@ -53,6 +53,7 @@ struct ArtificialViscosity {
     CUDA_CALLABLE_MEMBER ArtificialViscosity(real alpha, real beta);
 };
 
+// TODO: add struct Artificial Stress?
 /**
  * @brief Equation of states.
  */
@@ -71,14 +72,21 @@ struct EqOfSt {
         ar & type;
         ar & polytropic_K;
         ar & polytropic_gamma;
+        ar & rho_0;
+        ar & bulk_modulus;
+        ar & n;
     }
 
     int type;
     real polytropic_K;
     real polytropic_gamma;
+    // TODO: add rho_0, bulk_modulus and n for murnaghan EOS? all as type real
+    real rho_0; // density in relaxed state (for Solids)
+    real bulk_modulus;
+    real n;
 
     CUDA_CALLABLE_MEMBER EqOfSt();
-    CUDA_CALLABLE_MEMBER EqOfSt(int type, real polytropic_K, real polytropic_gamma);
+    CUDA_CALLABLE_MEMBER EqOfSt(int type, real polytropic_K, real polytropic_gamma); // what about new members of struct EqOfSt?
 
 };
 
@@ -105,6 +113,7 @@ public:
         ar & sml;
         ar & artificialViscosity;
         ar & eos;
+        // TODO: add Artificial Stress?
     }
 
     integer ID;
@@ -113,6 +122,7 @@ public:
 
     ArtificialViscosity artificialViscosity;
     EqOfSt eos;
+    // TODO: Artificial Stress
 
     CUDA_CALLABLE_MEMBER Material();
     CUDA_CALLABLE_MEMBER ~Material();

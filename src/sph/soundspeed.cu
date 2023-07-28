@@ -13,6 +13,9 @@ __global__ void SPH::Kernel::initializeSoundSpeed(Particles *particles, Material
             case EquationOfStates::EOS_TYPE_POLYTROPIC_GAS: {
                 particles->cs[i] = 0.0; // for gas this will be calculated each step by kernel calculateSoundSpeed
             } break;
+            case EquationOfStates::EOS_TYPE_MURNAGHAN: {
+                particles->cs[i] = cuda::math::sqrt(materials[matId].eos.bulk_modulus/ materials[matId].eos.rho_0); // c_s constant
+            } break;
             case EquationOfStates::EOS_TYPE_ISOTHERMAL_GAS: {
                 particles->cs[i] = 203.0; // this is pure molecular hydrogen at 10 K
                 //if (i % 1000 == 0) {
@@ -52,6 +55,9 @@ __global__ void SPH::Kernel::calculateSoundSpeed(Particles *particles, Material 
                 particles->cs[i] = cuda::math::sqrt(materials[matId].eos.polytropic_K *
                                         pow(particles->rho[i], materials[matId].eos.polytropic_gamma-1.0));
             } break;
+            //case EquationOfStates::EOS_TYPE_MURNAGHAN: {
+                //     // do nothing since c_s is constant
+                //} break;
             //case EquationOfStates::EOS_TYPE_ISOTHERMAL_GAS: {
             //    // do nothing since constant
             //} break;

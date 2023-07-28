@@ -35,6 +35,17 @@ namespace EOS {
     __device__ void polytropicGas(Material *materials, Particles *particles, int index);
 
     /**
+     * @brief Murnaghan for Solids.
+     *
+     * Refer to ::EquationOfStates.
+     *
+     * @param materials Material class instance
+     * @param particles Particles class instance
+     * @param index Relevant particle index
+     */
+    __device__ void murnaghan(Material *materials, Particles *particles, int index);
+
+    /**
      * @brief Isothermal gas.
      *
      * Refer to ::EquationOfStates.

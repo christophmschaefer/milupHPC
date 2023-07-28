@@ -134,7 +134,7 @@ public:
     /// (pointer to) pressure (array)
     real *p; // pressure
 
-    /// (pointer) to max(mu_ij) (array) needed for artificial viscosity and determining timestp
+    /// (pointer) to max(mu_ij) (array) needed for artificial viscosity and determining timestep
     real *muijmax;
 
 #if NAVIER_STOKES

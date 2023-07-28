@@ -466,6 +466,8 @@ public:
     real *d_drhodt;
 //#endif
 
+// TODO: add variables for Solids?
+
 #if VARIABLE_SML || INTEGRATE_SML
     real *d_dsmldt;
 #endif
