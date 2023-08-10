@@ -75,15 +75,16 @@ struct EqOfSt {
         ar & rho_0;
         ar & bulk_modulus;
         ar & n;
+        ar &shear_modulus;
     }
 
     int type;
     real polytropic_K;
     real polytropic_gamma;
-    // TODO: add rho_0, bulk_modulus and n for murnaghan EOS? all as type real
     real rho_0; // density in relaxed state (for Solids)
     real bulk_modulus;
     real n;
+    real shear_modulus;
 
     CUDA_CALLABLE_MEMBER EqOfSt();
     CUDA_CALLABLE_MEMBER EqOfSt(int type, real polytropic_K, real polytropic_gamma); // what about new members of struct EqOfSt?

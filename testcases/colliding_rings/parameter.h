@@ -88,7 +88,7 @@ typedef int idInteger;
 #define AVERAGE_KERNELS 0
 #define DEAL_WITH_TOO_MANY_INTERACTIONS 0
 #define SHEPARD_CORRECTION 0
-#define SOLID 0
+#define SOLID 1
 #define NAVIER_STOKES 0
 #define ARTIFICIAL_STRESS 0
 #define POROSITY 0

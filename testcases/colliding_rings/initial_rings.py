@@ -12,11 +12,11 @@ in applied mechanics and engineering
 dim = 2
 
 # ring properties: inner and outer radius
-r_inner = 3
-r_outer = 4
+r_inner = 3.0
+r_outer = 4.0
 
 # shift of the rings from origin on x-axis
-shift = 6
+shift = 6.0
 
 # particle spacing
 delta_p = 0.1
@@ -93,7 +93,7 @@ r_final = np.concatenate((r_ring, r_ring2))
 v_final = np.concatenate((v, v2))
 
 
-h5f = h5py.File("rings.h5", "w")
+h5f = h5py.File("rings3D.h5", "w")
 print("Saving to rings.h5 ...")
 
 # write to hdf5 data set

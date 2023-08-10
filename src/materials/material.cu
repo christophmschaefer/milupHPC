@@ -20,6 +20,7 @@ CUDA_CALLABLE_MEMBER void Material::info() {
     printf("Material: eos: rho0               = %f\n", eos.rho_0);
     printf("Material: eos: bulk_modulus       = %f\n", eos.bulk_modulus);
     printf("Material: eos: n                  = %f\n", eos.n);
+    printf("Material: eos: shear_modulus      = %f\n", eos.shear_modulus);
     // TODO: add other parameters
 }
 

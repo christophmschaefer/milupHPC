@@ -73,12 +73,40 @@ ParticleHandler::ParticleHandler(integer numParticles, integer numNodes) : numPa
     h_eta = new real[DIM * DIM * numParticles];
 #endif
 #if SOLID
-    h_S = new real[DIM * DIM * numParticles];
-    h_dSdt = new real[DIM * DIM * numParticles];
-    h_localStrain = new real[numParticles];
-#endif
+    _h_Sxx = new real[numParticles]{1};
+    h_Sxx = _h_Sxx;
+#if DIM > 1
+    _h_Sxy = new real[numParticles]{1};
+    h_Sxy = _h_Sxy;
+#if DIM == 3
+    _h_Syy = new real[numParticles]{0};
+    h_Syy = _h_Syy;
+    _h_Sxz = new real[numParticles]{0};
+    h_Sxz = _h_Sxz;
+    _h_Syz = new real[numParticles]{0};
+    h_Syz = _h_Syz;
+#endif // DIM == 3
+#endif // DIM > 1
+    _h_dSdtxx = new real[numParticles]{1};
+    h_dSdtxx = _h_dSdtxx;
+#if DIM > 1
+    _h_dSdtxy = new real[numParticles]{1};
+    h_dSdtxy = _h_dSdtxy;
+#if DIM == 3
+    _h_dSdtyy = new real[numParticles];
+    h_dSdtyy = _h_dSdtyy;
+    _h_dSdtxz = new real[numParticles];
+    h_dSdtxz = _h_dSdtxz;
+    _h_dSdtyz = new real[numParticles];
+    h_dSdtyz = _h_dSdtyz;
+#endif // DIM == 3
+#endif // DIM > 1
+    _h_localStrain = new real[numParticles]{1};
+    h_localStrain = _h_localStrain;
+#endif // SOLID
 #if SOLID || NAVIER_STOKES
-    h_sigma = new real[DIM * DIM * numParticles];
+    _h_sigma = new real[DIM * DIM * numParticles]{1};
+    h_sigma = _h_sigma;
 #endif
 #if ARTIFICIAL_STRESS
     h_R = new real[DIM * DIM * numParticles];;
@@ -199,12 +227,43 @@ ParticleHandler::ParticleHandler(integer numParticles, integer numNodes) : numPa
     cuda::malloc(d_eta, DIM * DIM * numParticles);
 #endif
 #if SOLID
-    cuda::malloc(d_S, DIM * DIM *numParticles);
-    cuda::malloc(d_dSdt, DIM * numParticles);
-    cuda::malloc(d_localStrain, numParticles);
-#endif
+    cuda::malloc(_d_Sxx, numParticles);
+    d_Sxx = _d_Sxx;
+#if DIM > 1
+    cuda::malloc(_d_Sxy, numParticles);
+    d_Sxy = _d_Sxy;
+#if DIM == 3
+    cuda::malloc(_d_Syy, numParticles);
+    d_Syy = _d_Syy;
+    cuda::malloc(_d_Sxz, numParticles);
+    d_Sxz = _d_Sxz;
+    cuda::malloc(_d_Syz, numParticles);
+    d_Syz = _d_Syz;
+#endif // DIM == 3
+#endif // DIM > 1
+
+    cuda::malloc(_d_dSdtxx, numParticles);
+    d_dSdtxx = _d_dSdtxx;
+#if DIM > 1
+    cuda::malloc(_d_dSdtxy, numParticles);
+    d_dSdtxy = _d_dSdtxy;
+#if DIM == 3
+    cuda::malloc(_d_dSdtyy, numParticles);
+    d_dSdtyy = _d_dSdtyy;
+    cuda::malloc(_d_dSdtxz, numParticles);
+    d_dSdtxz = _d_dSdtxz;
+    cuda::malloc(_d_dSdtyz, numParticles);
+    d_dSdtyz = _d_dSdtyz;
+#endif // DIM == 3
+#endif // DIM > 1
+    cuda::malloc(_d_localStrain, numParticles);
+    d_localStrain = _d_localStrain; // NOTE: here was the bug: _d_localStrain = d_localStrain;
+
+#endif // SOLID
+
 #if SOLID || NAVIER_STOKES
-    cuda::malloc(d_sigma, DIM * DIM * numParticles);
+    cuda::malloc(_d_sigma, DIM * DIM * numParticles);
+    d_sigma = _d_sigma;
 #endif
 #if ARTIFICIAL_STRESS
     cuda::malloc(d_R, DIM * DIM * numParticles);
@@ -313,9 +372,20 @@ ParticleHandler::ParticleHandler(integer numParticles, integer numNodes) : numPa
     ParticlesNS::Kernel::Launch::setNavierStokes(d_particles, d_Tshear, d_eta);
 #endif
 #if SOLID
-    h_particles->setSolid(h_S, h_dSdt, h_localStrain);
-    ParticlesNS::Kernel::Launch::setSolid(d_particles, d_S, d_dSdt, d_localStrain);
-#endif
+#if DIM == 1
+    h_particles->setSolid( h_Sxx, h_dSdtxx, h_localStrain );
+    ParticlesNS::Kernel::Launch::setSolid(d_particles, d_Sxx, d_dSdtxx, d_localStrain );
+#elif DIM == 2
+    h_particles->setSolid( h_Sxx, h_Sxy, h_dSdtxx, h_dSdtxy, h_localStrain );
+    ParticlesNS::Kernel::Launch::setSolid(d_particles, d_Sxx, d_Sxy, d_dSdtxx, d_dSdtxy, d_localStrain );
+#else
+    h_particles->setSolid( h_Sxx, h_Sxy, h_Syy, h_Sxz, h_Syz,
+                           h_dSdtxx, h_dSdtxy, h_dSdtyy, h_dSdtxz, h_dSdtyz, h_localStrain );
+    ParticlesNS::Kernel::Launch::setSolid(d_particles, d_Sxx, d_Sxy, d_Syy, d_Sxz, d_Syz,
+                                          d_dSdtxx, d_dSdtxy, d_dSdtyy, d_dSdtxz, d_dSdtyz, d_localStrain );
+#endif // DIM
+
+#endif // SOLID
 #if SOLID || NAVIER_STOKES
     h_particles->setSolidNavierStokes(h_sigma);
     ParticlesNS::Kernel::Launch::setSolidNavierStokes(d_particles, d_sigma);
@@ -394,6 +464,38 @@ ParticleHandler::~ParticleHandler() {
     delete [] _h_rho;
     delete [] _h_p;
     delete [] h_muijmax;
+//#if INTEGRATE_DENSITY
+    delete [] _h_drhodt;
+//#endif
+#if VARIABLE_SML || INTEGRATE_SML
+    delete [] _h_dsmldt;
+#endif
+#if SOLID
+
+    delete [] _h_Sxx;
+#if DIM > 1
+    delete [] _h_Sxy;
+#if DIM == 3
+    delete [] _h_Syy;
+    delete [] _h_Sxz;
+    delete [] _h_Syz;
+#endif // DIM == 3
+#endif // DIM > 1
+
+    delete [] _h_dSdtxx;
+#if DIM > 1
+    delete [] _h_dSdtxy;
+#if DIM == 3
+    delete [] _h_dSdtyy;
+    delete [] _h_dSdtxz;
+    delete [] _h_dSdtyz;
+#endif // DIM == 3
+#endif // DIM > 1
+    delete [] _h_localStrain;
+#endif // SOLID
+#if SOLID || NAVIER_STOKES
+    delete [] _h_sigma;
+#endif // SOLID || NAVIER_STOKES
 #endif // SPH_SIM
 
     // device particle entries
@@ -430,20 +532,43 @@ ParticleHandler::~ParticleHandler() {
     cuda::free(_d_rho);
     cuda::free(_d_p);
     cuda::free(d_muijmax);
-#endif // SPH_SIM
-
-#if SPH_SIM
-    delete [] h_muijmax;
-    cuda::free(d_muijmax);
-
 //#if INTEGRATE_DENSITY
-    delete [] _h_drhodt;
     cuda::free(_d_drhodt);
 //#endif
 #if VARIABLE_SML || INTEGRATE_SML
-    delete [] _h_dsmldt;
     cuda::free(_d_dsmldt);
 #endif
+#if SOLID
+
+    cuda::free(_d_Sxx);
+#if DIM > 1
+    cuda::free(_d_Sxy);
+#if DIM == 3
+    cuda::free(_d_Syy);
+    cuda::free(_d_Sxz);
+    cuda::free(_d_Syz);
+#endif // DIM == 3
+#endif // DIM > 1
+
+    cuda::free(_d_dSdtxx);
+#if DIM > 1
+    cuda::free(_d_dSdtxy);
+#if DIM == 3
+    cuda::free(_d_dSdtyy);
+    cuda::free(_d_dSdtxz);
+    cuda::free(_d_dSdtyz);
+#endif // DIM == 3
+#endif // DIM > 1
+
+    cuda::free(_d_localStrain);
+#endif // SOLID
+#if SOLID || NAVIER_STOKES
+    cuda::free(_d_sigma);
+#endif // SOLID || NAVIER_STOKES
+#endif // SPH_SIM
+
+
+#if SPH_SIM
 #if SML_CORRECTION
     delete [] h_sml_omega;
     cuda::free(d_sml_omega);
@@ -453,18 +578,6 @@ ParticleHandler::~ParticleHandler() {
     cuda::free(d_Tshear);
     delete [] h_eta;
     cuda::free(d_eta);
-#endif
-#if SOLID
-    delete [] h_S;
-    cuda::free(d_S);
-    delete [] h_dSdt;
-    cuda::free(d_dSdt);
-    delete [] h_localStrain;
-    cuda::free(d_localStrain);
-#endif
-#if SOLID || NAVIER_STOKES
-    delete [] h_sigma;
-    cuda::free(d_sigma);
 #endif
 #if ARTIFICIAL_STRESS
     delete [] h_R;
@@ -690,6 +803,31 @@ void ParticleHandler::setPointer(IntegratedParticleHandler *integratedParticleHa
 #if VARIABLE_SML || INTEGRATE_SML
     d_dsmldt = integratedParticleHandler->d_dsmldt;
 #endif
+
+#if SOLID
+    d_Sxx = integratedParticleHandler->d_Sxx;
+#if DIM > 1
+    d_Sxy = integratedParticleHandler->d_Sxy;
+#if DIM == 3
+    d_Syy = integratedParticleHandler->d_Syy;
+    d_Sxz = integratedParticleHandler->d_Sxz;
+    d_Syz = integratedParticleHandler->d_Syz;
+#endif
+#endif // DIM > 1
+    d_dSdtxx = integratedParticleHandler->d_dSdtxx;
+#if DIM > 1
+    d_dSdtxy = integratedParticleHandler->d_dSdtxy;
+#if DIM == 3
+    d_dSdtyy = integratedParticleHandler->d_dSdtyy;
+    d_dSdtxz = integratedParticleHandler->d_dSdtxz;
+    d_dSdtyz = integratedParticleHandler->d_dSdtyz;
+#endif
+#endif // DIM > 1
+    d_localStrain = integratedParticleHandler->d_localStrain;
+#endif // SOLID
+#if SOLID || NAVIER_STOKES
+    d_sigma = integratedParticleHandler->d_sigma;
+#endif
 #endif // SPH_SIM
 
 // Already redirected pointers, thus just call setter like in constructor
@@ -703,23 +841,41 @@ void ParticleHandler::setPointer(IntegratedParticleHandler *integratedParticleHa
                      h_sml, h_nnl, h_noi, h_e, h_dedt, h_cs, h_rho, h_p);
     ParticlesNS::Kernel::Launch::set(d_particles, d_numParticles, d_numNodes, d_mass, d_x, d_y, d_vx, d_vy, d_ax, d_ay,
                                      d_level, d_uid, d_materialId, d_sml, d_nnl, d_noi, d_e, d_dedt, d_cs, d_rho, d_p);
+// TODO: Missing #if SPH with dependencies, this is only in 3D covered - check again
 #else
     h_particles->set(&numParticles, &numNodes, h_mass, h_x, h_y, h_z, h_vx, h_vy, h_vz, h_ax, h_ay, h_az,
                      h_level, h_uid, h_materialId, h_sml, h_nnl, h_noi, h_e, h_dedt, h_cs, h_rho, h_p);
-    h_particles->setIntegrateDensity(h_drhodt);
-
-#if SPH_SIM
-#if VARIABLE_SML || INTEGRATE_SML
-    h_particles->setVariableSML(h_dsmldt);
-#endif
-
     ParticlesNS::Kernel::Launch::set(d_particles, d_numParticles, d_numNodes, d_mass, d_x, d_y, d_z, d_vx, d_vy, d_vz,
                                      d_ax, d_ay, d_az, d_level, d_uid, d_materialId, d_sml,
                                      d_nnl, d_noi, d_e, d_dedt, d_cs, d_rho, d_p);
+#endif
+
+
+#if SPH_SIM
+    h_particles->setIntegrateDensity(h_drhodt);
     ParticlesNS::Kernel::Launch::setIntegrateDensity(d_particles, d_drhodt);
 #if VARIABLE_SML || INTEGRATE_SML
+    h_particles->setVariableSML(h_dsmldt);
     ParticlesNS::Kernel::Launch::setVariableSML(d_particles, d_dsmldt);
 #endif
+#if SOLID
+#if DIM == 1
+    h_particles->setSolid( h_Sxx, h_dSdtxx, h_localStrain );
+    ParticlesNS::Kernel::Launch::setSolid(d_particles, d_Sxx, d_dSdtxx, d_localStrain );
+#elif DIM == 2
+    h_particles->setSolid( h_Sxx, h_Sxy, h_dSdtxx, h_dSdtxy, h_localStrain );
+    ParticlesNS::Kernel::Launch::setSolid(d_particles, d_Sxx, d_Sxy, d_dSdtxx, d_dSdtxy, d_localStrain );
+#else
+    h_particles->setSolid( h_Sxx, h_Sxy, h_Syy, h_Sxz, h_Syz,
+                           h_dSdtxx, h_dSdtxy, h_dSdtyy, h_dSdtxz, h_dSdtyz, h_localStrain );
+    ParticlesNS::Kernel::Launch::setSolid(d_particles, d_Sxx, d_Sxy, d_Syy, d_Sxz, d_Syz,
+                                          d_dSdtxx, d_dSdtxy, d_dSdtyy, d_dSdtxz, d_dSdtyz, d_localStrain );
+#endif // DIM
+
+#endif // SOLID
+#if SOLID || NAVIER_STOKES
+    h_particles->setSolidNavierStokes(h_sigma);
+    ParticlesNS::Kernel::Launch::setSolidNavierStokes(d_particles, d_sigma);
 #endif
 #endif // SPH_SIM
 
@@ -758,6 +914,33 @@ void ParticleHandler::resetPointer() {
 #if VARIABLE_SML || INTEGRATE_SML
     d_dsmldt = _d_dsmldt;
 #endif
+#if SOLID
+
+    d_Sxx = _d_Sxx;
+#if DIM > 1
+    d_Sxy = _d_Sxy;
+#if DIM == 3
+    d_Syy = _d_Syy;
+    d_Sxz = _d_Sxz;
+    d_Syz = _d_Syz;
+#endif // DIM == 3
+#endif // DIM >1
+
+    d_dSdtxx = _d_dSdtxx;
+#if DIM > 1
+    d_dSdtxy = _d_dSdtxy;
+#if DIM == 3
+    d_dSdtyy = _d_dSdtyy;
+    d_dSdtxz = _d_dSdtxz;
+    d_dSdtyz = _d_dSdtyz;
+#endif // DIM == 3
+#endif // DIM >1
+
+    d_localStrain = _d_localStrain;
+#endif //SOLID
+#if SOLID || NAVIER_STOKES
+    d_sigma = _d_sigma;
+#endif
 #endif // SPH_SIM
 
 #if DIM == 1
@@ -773,20 +956,36 @@ void ParticleHandler::resetPointer() {
 #else
     h_particles->set(&numParticles, &numNodes, h_mass, h_x, h_y, h_z, h_vx, h_vy, h_vz, h_ax, h_ay, h_az,
                      h_level, h_uid, h_materialId, h_sml, h_nnl, h_noi, h_e, h_dedt, h_cs, h_rho, h_p);
-    h_particles->setIntegrateDensity(h_drhodt);
-
-#if SPH_SIM
-#if VARIABLE_SML || INTEGRATE_SML
-    h_particles->setVariableSML(h_dsmldt);
-#endif
-
-    ParticlesNS::Kernel::Launch::set(d_particles, d_numParticles, d_numNodes, d_mass, d_x, d_y, d_z, d_vx, d_vy, d_vz,
+     ParticlesNS::Kernel::Launch::set(d_particles, d_numParticles, d_numNodes, d_mass, d_x, d_y, d_z, d_vx, d_vy, d_vz,
                                      d_ax, d_ay, d_az, d_level, d_uid, d_materialId, d_sml,
                                      d_nnl, d_noi, d_e, d_dedt, d_cs, d_rho, d_p);
+
+#endif // DIM
+#if SPH_SIM
+    h_particles->setIntegrateDensity(h_drhodt);
     ParticlesNS::Kernel::Launch::setIntegrateDensity(d_particles, d_drhodt);
 #if VARIABLE_SML || INTEGRATE_SML
+    h_particles->setVariableSML(h_dsmldt);
     ParticlesNS::Kernel::Launch::setVariableSML(d_particles, d_dsmldt);
 #endif
+#if SOLID
+#if DIM == 1
+    h_particles->setSolid( h_Sxx, h_dSdtxx, h_localStrain );
+    ParticlesNS::Kernel::Launch::setSolid(d_particles, d_Sxx, d_dSdtxx, d_localStrain );
+#elif DIM == 2
+    h_particles->setSolid( h_Sxx, h_Sxy, h_dSdtxx, h_dSdtxy, h_localStrain );
+    ParticlesNS::Kernel::Launch::setSolid(d_particles, d_Sxx, d_Sxy, d_dSdtxx, d_dSdtxy, d_localStrain );
+#else
+    h_particles->setSolid( h_Sxx, h_Sxy, h_Syy, h_Sxz, h_Syz,
+                           h_dSdtxx, h_dSdtxy, h_dSdtyy, h_dSdtxz, h_dSdtyz, h_localStrain );
+    ParticlesNS::Kernel::Launch::setSolid(d_particles, d_Sxx, d_Sxy, d_Syy, d_Sxz, d_Syz,
+                                          d_dSdtxx, d_dSdtxy, d_dSdtyy, d_dSdtxz, d_dSdtyz, d_localStrain );
+#endif // DIM
+
+#endif // SOLID
+#if SOLID || NAVIER_STOKES
+    h_particles->setSolidNavierStokes(h_sigma);
+    ParticlesNS::Kernel::Launch::setSolidNavierStokes(d_particles, d_sigma);
 #endif
 #endif // SPH_SIM
 
@@ -887,6 +1086,7 @@ void ParticleHandler::copyDistribution(To::Target target, bool velocity, bool ac
 }
 
 void ParticleHandler::copySPH(To::Target target) {
+    //copy only quantities which are written to file
     int length = numParticles;
     cuda::copy(h_rho, d_rho, length, target);
     cuda::copy(h_p, d_p, length, target);
@@ -894,6 +1094,33 @@ void ParticleHandler::copySPH(To::Target target) {
     cuda::copy(h_sml, d_sml, length, target);
     cuda::copy(h_noi, d_noi, length, target);
     cuda::copy(h_cs, d_cs, length, target);
+#if INTEGRATE_DENSITY
+    cuda::copy(h_drhodt, d_drhodt, length, target);
+#endif
+#if SOLID
+    cuda::copy(h_Sxx, d_Sxx, length, target);
+#if DIM > 1
+    cuda::copy(h_Sxy, d_Sxy, length, target);
+#if DIM == 3
+    cuda::copy(h_Syy, d_Syy, length, target);
+    cuda::copy(h_Sxz, d_Sxz, length, target);
+    cuda::copy(h_Syz, d_Syz, length, target);
+#endif // DIM == 3
+#endif // DIM >1
+    cuda::copy(h_dSdtxx, d_dSdtxx, length, target);
+#if DIM > 1
+    cuda::copy(h_dSdtxy, d_dSdtxy, length, target);
+#if DIM == 3
+    cuda::copy(h_dSdtyy, d_dSdtyy, length, target);
+    cuda::copy(h_dSdtxz, d_dSdtxz, length, target);
+    cuda::copy(h_dSdtyz, d_dSdtyz, length, target);
+#endif // DIM == 3
+#endif // DIM >1
+    cuda::copy(h_localStrain, d_localStrain, length, target); // TODO: what is the problem?
+#endif // SOLID
+#if SOLID || NAVIER_STOKES
+    cuda::copy(h_sigma, d_sigma, length*DIM*DIM, target);
+#endif
 }
 
 IntegratedParticleHandler::IntegratedParticleHandler(integer numParticles, integer numNodes) :
@@ -930,7 +1157,31 @@ IntegratedParticleHandler::IntegratedParticleHandler(integer numParticles, integ
 #if VARIABLE_SML || INTEGRATE_SML
     cuda::malloc(d_dsmldt, numParticles);
 #endif
+#if SOLID
+    cuda::malloc(d_Sxx, numParticles);
+#if DIM > 1
+    cuda::malloc(d_Sxy, numParticles);
+#if DIM == 3
+    cuda::malloc(d_Syy, numParticles);
+    cuda::malloc(d_Sxz, numParticles);
+    cuda::malloc(d_Syz, numParticles);
+#endif // DIM == 3
+#endif // DIM > 1
 
+    cuda::malloc(d_dSdtxx, numParticles);
+#if DIM > 1
+    cuda::malloc(d_dSdtxy, numParticles);
+#if DIM == 3
+    cuda::malloc(d_dSdtyy, numParticles);
+    cuda::malloc(d_dSdtxz, numParticles);
+    cuda::malloc(d_dSdtyz, numParticles);
+#endif // DIM == 3
+#endif // DIM > 1
+    cuda::malloc(d_localStrain, numParticles);
+#endif // SOLID
+#if SOLID || NAVIER_STOKES
+    cuda::malloc(d_sigma, numParticles*DIM*DIM);
+#endif
     cuda::malloc(d_integratedParticles, 1);
 
 #if DIM == 1
@@ -952,6 +1203,20 @@ IntegratedParticleHandler::IntegratedParticleHandler(integer numParticles, integ
 
 #if VARIABLE_SML || INTEGRATE_SML
     IntegratedParticlesNS::Kernel::Launch::setIntegrateSML(d_integratedParticles, d_dsmldt);
+#endif
+#if SOLID
+#if DIM == 1
+    IntegratedParticlesNS::Kernel::Launch::setSolid(d_integratedParticles, d_Sxx, d_dSdtxx, d_localStrain );
+#elif DIM == 2
+    IntegratedParticlesNS::Kernel::Launch::setSolid(d_integratedParticles, d_Sxx, d_Sxy,
+                                                    d_dSdtxx, d_dSdtxy, d_localStrain );
+#else
+    IntegratedParticlesNS::Kernel::Launch::setSolid(d_integratedParticles, d_Sxx, d_Sxy, d_Syy, d_Sxz, d_Syz,
+                                          d_dSdtxx, d_dSdtxy, d_dSdtyy, d_dSdtxz, d_dSdtyz, d_localStrain );
+#endif // DIM
+#endif // SOLID
+#if SOLID || NAVIER_STOKES
+    IntegratedParticlesNS::Kernel::Launch::setSolidNavierStokes(d_integratedParticles, d_sigma);
 #endif
 
 }
@@ -988,6 +1253,31 @@ IntegratedParticleHandler::~IntegratedParticleHandler() {
 
 #if VARIABLE_SML || INTEGRATE_SML
     cuda::free(d_dsmldt);
+#endif
+#if SOLID
+    cuda::free(d_Sxx);
+#if DIM > 1
+    cuda::free(d_Sxy);
+#if DIM == 3
+    cuda::free(d_Syy);
+    cuda::free(d_Sxz);
+    cuda::free(d_Syz);
+#endif // DIM == 3
+#endif // DIM > 1
+
+    cuda::free(d_dSdtxx);
+#if DIM > 1
+    cuda::free(d_dSdtxy);
+#if DIM == 3
+    cuda::free(d_dSdtyy);
+    cuda::free(d_dSdtxz);
+    cuda::free(d_dSdtyz);
+#endif // DIM == 3
+#endif // DIM > 1
+    cuda::free(d_localStrain);
+#endif // SOLID
+#if SOLID || NAVIER_STOKES
+    cuda::free(d_sigma);
 #endif
 
     cuda::free(d_integratedParticles);

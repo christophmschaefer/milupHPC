@@ -249,25 +249,55 @@ void Miluphpc::prepareSimulation() {
 
     Logger(DEBUG) << "Initialize/Read particle distribution ...";
     distributionFromFile(simulationParameters.inputFile);
-
+    Logger(DEBUG) << "Finished Distributin from File ...";
 #if SPH_SIM
     SPH::Kernel::Launch::initializeSoundSpeed(particleHandler->d_particles, materialHandler->d_materials, numParticlesLocal);
 #endif
-
+    Logger(DEBUG) << "Copy Distribution ...";
     particleHandler->copyDistribution(To::device, true, true);
 #if SPH_SIM
+    Logger(DEBUG) << "SPH SIM ...";
     //TODO: problem: (e.g.) cs should not be copied....
     //particleHandler->copySPH(To::device);
-    // TODO: Move this into copyDistribution-function of the particle handler
 #if INTEGRATE_DENSITY
     cuda::copy(particleHandler->h_rho, particleHandler->d_rho, numParticles, To::device);
-#endif
+#endif // INTEGRATE_DENSITY
     //cuda::copy(particleHandler->h_p, particleHandler->d_p, numParticles, To::device);
     cuda::copy(particleHandler->h_e, particleHandler->d_e, numParticles, To::device);
     cuda::copy(particleHandler->h_sml, particleHandler->d_sml, numParticles, To::device);
     //cuda::copy(particleHandler->h_noi, particleHandler->d_noi, numParticles, To::device);
     //cuda::copy(particleHandler->h_cs, particleHandler->d_cs, numParticles, To::device);
-#endif
+
+#if SOLID
+    Logger(DEBUG) << "SOLID  Sxx etc...";
+    cuda::copy(particleHandler->h_Sxx, particleHandler->d_Sxx, numParticles, To::device);
+#if DIM > 1
+    cuda::copy(particleHandler->h_Sxy, particleHandler->d_Sxy, numParticles, To::device);
+#if DIM == 3
+    cuda::copy(particleHandler->h_Syy, particleHandler->d_Syy, numParticles, To::device);
+    cuda::copy(particleHandler->h_Sxz, particleHandler->d_Sxz, numParticles, To::device);
+    cuda::copy(particleHandler->h_Syz, particleHandler->d_Syz, numParticles, To::device);
+#endif // DIM == 3
+#endif // DIM >1
+    Logger(DEBUG) << "SOLID  dSxxdt etc...";
+    cuda::copy(particleHandler->h_dSdtxx, particleHandler->d_dSdtxx, numParticles, To::device);
+#if DIM > 1
+    cuda::copy(particleHandler->h_dSdtxy, particleHandler->d_dSdtxy, numParticles, To::device);
+#if DIM == 3
+    cuda::copy(particleHandler->h_dSdtyy, particleHandler->d_dSdtyy, numParticles, To::device);
+    cuda::copy(particleHandler->h_dSdtxz, particleHandler->d_dSdtxz, numParticles, To::device);
+    cuda::copy(particleHandler->h_dSdtyz, particleHandler->d_dSdtyz, numParticles, To::device);
+#endif // DIM == 3
+#endif // DIM > 1
+    Logger(DEBUG) << "localStrain...";
+    cuda::copy(particleHandler->h_localStrain, particleHandler->d_localStrain, numParticles, To::device); // TODO: What is the problem
+#endif // SOLID
+
+#if SOLID || NAVIER_STOKES
+    Logger(DEBUG) << "sigma...";
+    cuda::copy(particleHandler->h_sigma, particleHandler->d_sigma, DIM * DIM * numParticles, To::device);
+#endif // SOLID || NAVIER_STOKES
+#endif // SPH_SIM
 
     if (simulationParameters.removeParticles) {
         removeParticles();
@@ -2587,14 +2617,22 @@ real Miluphpc::parallel_sph() {
 
 #if DEBUGGING
     // debug
+
     gpuErrorcheck(cudaMemset(buffer->d_integerVal, 0, sizeof(integer)));
+#if DIM == 1
+    CudaUtils::Kernel::Launch::findDuplicates(&particleHandler->d_x[0],buffer->d_integerVal,
+                                                   numParticlesLocal + particleTotalReceiveLength);
+#else
     CudaUtils::Kernel::Launch::findDuplicateEntries(&particleHandler->d_x[0],
+
                                                     &particleHandler->d_y[0],
 #if DIM == 3
                                                     &particleHandler->d_z[0],
 #endif
+
                                                     buffer->d_integerVal,
-                                                    numParticlesLocal + particleTotalReceiveLength);
+                                                   numParticlesLocal + particleTotalReceiveLength);
+#endif
     integer duplicates;
     gpuErrorcheck(cudaMemcpy(&duplicates, buffer->d_integerVal, sizeof(integer), cudaMemcpyDeviceToHost));
     Logger(DEBUG) << "duplicates: " << duplicates << " between: " << 0 << " and "
@@ -2604,6 +2642,7 @@ real Miluphpc::parallel_sph() {
         exit(0);
     }
     //end: debug
+
 #endif
 
     //TreeNS::Kernel::Launch::info(treeHandler->d_tree, particleHandler->d_particles, numParticles, numNodes);
@@ -2830,6 +2869,13 @@ real Miluphpc::parallel_sph() {
     profiler.value2file(ProfilerIds::Time::SPH::resend, time);
 
     totalTime += time;
+    // TODO: add calc of Stress or add in internalforces.cu?
+    // TODO: and calc of artificial Stress or add in internalforces.cu?
+#if SOLID
+    Logger(DEBUG) << "Stress";
+    time = SPH::Kernel::Launch::calculateStress(particleHandler->d_particles, numParticlesLocal);
+#endif
+
     Logger(DEBUG) << "internal forces";
 
     time = SPH::Kernel::Launch::internalForces(kernelHandler.kernel, materialHandler->d_materials, treeHandler->d_tree,
@@ -3302,6 +3348,10 @@ real Miluphpc::particles2file(int step) {
     dataSpaceDims[0] = std::size_t(sumParticles);
     dataSpaceDims[1] = DIM;
 
+    std::vector <size_t> dataSpaceDimsTensor(2);
+    dataSpaceDimsTensor[0] = std::size_t(sumParticles);
+    dataSpaceDimsTensor[1] = (DIM*DIM);
+
     HighFive::DataSet ranges = h5file.createDataSet<keyType>("/ranges", HighFive::DataSpace(subDomainKeyTreeHandler->h_numProcesses + 1));
 
     keyType *rangeValues;
@@ -3335,11 +3385,41 @@ real Miluphpc::particles2file(int step) {
     HighFive::DataSet h5_sml = h5file.createDataSet<real>("/sml", HighFive::DataSpace(sumParticles));
     HighFive::DataSet h5_noi = h5file.createDataSet<integer>("/noi", HighFive::DataSpace(sumParticles));
     HighFive::DataSet h5_cs = h5file.createDataSet<real>("/cs", HighFive::DataSpace(sumParticles));
-/*#if INTEGRATE_DENSITY
-    HighFive::DataSet h5_drho = h5file.createDataSet<real>("/drho", HighFive::DataSpace(sumParticles));
-#endif*/
-    // TODO: add other variables for Solids etc., drho/dt?
+
+#if INTEGRATE_DENSITY
+    HighFive::DataSet h5_drhodt = h5file.createDataSet<real>("/drhodt", HighFive::DataSpace(sumParticles));
 #endif
+
+#if SOLID
+    HighFive::DataSet h5_Sxx = h5file.createDataSet<real>("/Sxx", HighFive::DataSpace(sumParticles));
+#if DIM > 1
+    HighFive::DataSet h5_Sxy = h5file.createDataSet<real>("/Sxy", HighFive::DataSpace(sumParticles));
+#if DIM == 3
+    HighFive::DataSet h5_Syy = h5file.createDataSet<real>("/Syy", HighFive::DataSpace(sumParticles));
+    HighFive::DataSet h5_Sxz = h5file.createDataSet<real>("/Sxz", HighFive::DataSpace(sumParticles));
+    HighFive::DataSet h5_Syz = h5file.createDataSet<real>("/Syz", HighFive::DataSpace(sumParticles));
+#endif // DIM == 3
+#endif // DIM > 1
+
+    HighFive::DataSet h5_dSdtxx = h5file.createDataSet<real>("/dSdtxx", HighFive::DataSpace(sumParticles));
+#if DIM > 1
+    HighFive::DataSet h5_dSdtxy = h5file.createDataSet<real>("/dSdtxy", HighFive::DataSpace(sumParticles));
+#if DIM == 3
+    HighFive::DataSet h5_dSdtyy = h5file.createDataSet<real>("/dSdtyy", HighFive::DataSpace(sumParticles));
+    HighFive::DataSet h5_dSdtxz = h5file.createDataSet<real>("/dSdtxz", HighFive::DataSpace(sumParticles));
+    HighFive::DataSet h5_dSdtyz = h5file.createDataSet<real>("/dSdtyz", HighFive::DataSpace(sumParticles));
+#endif // DIM == 3
+#endif // DIM > 1
+    HighFive::DataSet h5_localStrain = h5file.createDataSet<real>("/localStrain", HighFive::DataSpace(sumParticles));
+#endif // SOLID
+
+#if SOLID || NAVIER_STOKES
+    HighFive::DataSet h5_sigma = h5file.createDataSet<real>("/sigma", HighFive::DataSpace(dataSpaceDimsTensor));
+    /*debug: HighFive::DataSpace spacespace = h5_sigma.getSpace();
+    std::vector<size_t> space = spacespace.getDimensions();
+    std::cout << space[0] <<"  " << space[1] << std::endl;*/ // TODO: delete this
+#endif
+#endif // SPH_SIM
 
     HighFive::DataSet h5_totalEnergy;
     if (simulationParameters.calculateEnergy) {
@@ -3361,17 +3441,46 @@ real Miluphpc::particles2file(int step) {
     std::vector<int> particleProc;
 #if SPH_SIM
     std::vector<real> rho, p, e, sml, cs;
-/*#if INTEGRATE_DENSITY
-    std::vector<real> drho;
-#endif*/
     std::vector<integer> noi;
+
+#if INTEGRATE_DENSITY
+    std::vector<real> drhodt;
 #endif
+#if SOLID
+    std::vector<real> Sxx;
+#if DIM > 1
+    std::vector<real> Sxy;
+#if DIM == 3
+    std::vector<real> Syy;
+    std::vector<real> Sxz;
+    std::vector<real> Syz;
+#endif
+#endif
+    std::vector<real> dSdtxx;
+#if DIM > 1
+    std::vector<real> dSdtxy;
+#if DIM == 3
+    std::vector<real> dSdtyy;
+    std::vector<real> dSdtxz;
+    std::vector<real> dSdtyz;
+#endif
+#endif
+    std::vector<real> localStrain;
+#endif
+#if SOLID || NAVIER_STOKES
+#if DIM == 1
+    std::vector<real> sigma;
+#else
+    std::vector<std::vector<real>> sigma; // 2-D vector to hold tensor Data (DIM*DIM)
+#endif // DIM == 1
+#endif
+#endif // SPH
 
     Logger(INFO) << "copying particles ...";
 
     particleHandler->copyDistribution(To::host, true, false);
 #if SPH_SIM
-    particleHandler->copySPH(To::host);
+    particleHandler->copySPH(To::host); // TODO: change for SOLIDS? function only used here in particles2file(int step)
 #endif
 
     Logger(INFO) << "getting particle keys ...";
@@ -3418,7 +3527,45 @@ real Miluphpc::particles2file(int step) {
         sml.push_back(particleHandler->h_sml[i]);
         noi.push_back(particleHandler->h_noi[i]);
         cs.push_back(particleHandler->h_cs[i]);
+#if INTEGRATE_DENSITY
+        drhodt.push_back(particleHandler->h_drhodt[i]);
 #endif
+#if SOLID
+        Sxx.push_back(particleHandler->h_Sxx[i]);
+#if DIM > 1
+        Sxy.push_back(particleHandler->h_Sxy[i]);
+#if DIM == 3
+        Syy.push_back(particleHandler->h_Syy[i]);
+        Sxz.push_back(particleHandler->h_Sxz[i]);
+        Syz.push_back(particleHandler->h_Syz[i]);
+#endif // DIM == 3
+#endif // DIM >1
+
+        dSdtxx.push_back(particleHandler->h_dSdtxx[i]);
+#if DIM > 1
+        dSdtxy.push_back(particleHandler->h_dSdtxy[i]);
+#if DIM == 3
+        dSdtyy.push_back(particleHandler->h_dSdtyy[i]);
+        dSdtxz.push_back(particleHandler->h_dSdtxz[i]);
+        dSdtyz.push_back(particleHandler->h_dSdtyz[i]);
+#endif // DIM == 3
+#endif // DIM >1
+        localStrain.push_back(particleHandler->h_localStrain[i]);
+#endif
+#if SOLID || NAVIER_STOKES
+#if DIM == 1
+        sigma.push_back(particleHandler->h_sigma[i]);
+#elif DIM == 2
+        sigma.push_back({particleHandler->h_sigma[i*DIM*DIM],particleHandler->h_sigma[i*DIM*DIM+1],
+                         particleHandler->h_sigma[i*DIM*DIM+2], particleHandler->h_sigma[i*DIM*DIM+3] });
+        //printf("sigma[%i*%i*%i] = %e, sigma[+1] = %e, sigma[+2] = %e, sigma[+3] = %e \n", i, DIM, DIM, particleHandler->h_sigma[i*DIM*DIM],particleHandler->h_sigma[i*DIM*DIM+1], particleHandler->h_sigma[i*DIM*DIM+2], particleHandler->h_sigma[i*DIM*DIM+3] ); // TODO: delete this
+#else
+        sigma.push_back({particleHandler->h_sigma[i*DIM*DIM],particleHandler->h_sigma[i*DIM*DIM+1],particleHandler->h_sigma[i*DIM*DIM+2],
+                         particleHandler->h_sigma[i*DIM*DIM+3], particleHandler->h_sigma[i*DIM*DIM+4], particleHandler->h_sigma[i*DIM*DIM+5],
+                         particleHandler->h_sigma[i*DIM*DIM+6], particleHandler->h_sigma[i*DIM*DIM+7], particleHandler->h_sigma[i*DIM*DIM+8]});
+#endif // DIM
+#endif // SOLID || NAVIER_STOKES
+#endif // SPH_SIM
     }
 
     //cuda::free(d_keys);
@@ -3441,10 +3588,10 @@ real Miluphpc::particles2file(int step) {
     for (int proc = 0; proc < subDomainKeyTreeHandler->h_subDomainKeyTree->rank; proc++){
         nOffset += procN[proc];
     }
+    //std::cout << "size of sigma : "<< sigma.size() << " "<< sigma[0].size() << '\n'; // TODO: delete this
     Logger(DEBUG) << "Offset to write to datasets: " << std::to_string(nOffset);
 
     Logger(INFO) << "writing to h5 ...";
-
     h5_time.write(time);
     // write to associated datasets in h5 file
     // only working when load balancing has been completed and even number of particles
@@ -3462,7 +3609,34 @@ real Miluphpc::particles2file(int step) {
     h5_sml.select({nOffset}, {std::size_t(numParticlesLocal)}).write(sml);
     h5_noi.select({nOffset}, {std::size_t(numParticlesLocal)}).write(noi);
     h5_cs.select({nOffset}, {std::size_t(numParticlesLocal)}).write(cs);
+#if INTEGRATE_DENSITY
+    h5_drhodt.select({nOffset},{std::size_t(numParticlesLocal)}).write(drhodt);
 #endif
+#if SOLID
+    h5_Sxx.select({nOffset}, {std::size_t(numParticlesLocal)}).write(Sxx);
+#if DIM > 1
+    h5_Sxy.select({nOffset}, {std::size_t(numParticlesLocal)}).write(Sxy);
+#if DIM == 3
+    h5_Syy.select({nOffset}, {std::size_t(numParticlesLocal)}).write(Syy);
+    h5_Sxz.select({nOffset}, {std::size_t(numParticlesLocal)}).write(Sxz);
+    h5_Syz.select({nOffset}, {std::size_t(numParticlesLocal)}).write(Syz);
+#endif // DIM == 3
+#endif // DIM > 1
+    h5_dSdtxx.select({nOffset}, {std::size_t(numParticlesLocal)}).write(dSdtxx);
+#if DIM > 1
+    h5_dSdtxy.select({nOffset}, {std::size_t(numParticlesLocal)}).write(dSdtxy);
+#if DIM == 3
+    h5_dSdtyy.select({nOffset}, {std::size_t(numParticlesLocal)}).write(dSdtyy);
+    h5_dSdtxz.select({nOffset}, {std::size_t(numParticlesLocal)}).write(dSdtxz);
+    h5_dSdtyz.select({nOffset}, {std::size_t(numParticlesLocal)}).write(dSdtyz);
+#endif // DIM == 3
+#endif // DIM > 1
+    h5_localStrain.select({nOffset}, {std::size_t(numParticlesLocal)}).write(localStrain);
+#endif //SOLID
+#if SOLID || NAVIER_STOKES
+    h5_sigma.select({nOffset, 0}, {std::size_t(numParticlesLocal), std::size_t(DIM*DIM)}).write(sigma);
+#endif
+#endif // SPH_SIM
 
     if (simulationParameters.calculateEnergy) {
         h5_totalEnergy.select({subDomainKeyTreeHandler->h_subDomainKeyTree->rank}, {1}).write(totalEnergy);

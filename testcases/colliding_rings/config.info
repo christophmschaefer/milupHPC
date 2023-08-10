@@ -1,7 +1,7 @@
 ; IO RELATED
 ; ------------------------------------------------------
 ; output directory (will be created if it does not exist)
-directory <TODO: directory>
+directory /scratch/jeschke/test/colliding_rings/1gpu/
 
 ; outputRank (-1 corresponds to all)
 outputRank -1
@@ -25,11 +25,11 @@ particlesSent2H5 false
 ; explicit euler [0], predictor-corrector euler [1]
 integrator 1
 ; initial time step
-timeStep 0.0005
+timeStep 0.05
 ; max time step allowed
-maxTimeStep 1e0
+maxTimeStep 10e-2
 ; end time for simulation
-timeEnd 6.0
+timeEnd 0.05
 
 ; SIMULATION RELATED
 ; ------------------------------------------------------

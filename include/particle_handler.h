@@ -99,16 +99,41 @@ public:
     real *h_eta;
 #endif
 #if SOLID
-    /// host deviatoric stress tensor
-    real *h_S;
-    /// host time deriative of deviatoric stress tensor
-    real *h_dSdt;
+    /// host xx-entry of the deviatoric stress tensor
+    real *h_Sxx, *_h_Sxx;
+#if DIM > 1
+    /// host xy-entry of the deviatoric stress tensor
+    real *h_Sxy, *_h_Sxy;
+#if DIM == 3
+    /// host yy-entry of the deviatoric stress tensor
+    real *h_Syy, *_h_Syy;
+    /// host xz-entry of the deviatoric stress tensor
+    real *h_Sxz, *_h_Sxz;
+    /// host yz-entry of the deviatoric stress tensor
+    real *h_Syz, *_h_Syz;
+#endif // DIM == 3
+#endif // DIM > 1
+    /// host xx-entry of the time derivative of the deviatoric stress tensor
+    real *h_dSdtxx, *_h_dSdtxx;
+#if DIM > 1
+    /// host xy-entry of the time derivative of the deviatoric stress tensor
+    real *h_dSdtxy, *_h_dSdtxy;
+#if DIM == 3
+    /// host yy-entry of the time derivative of the deviatoric stress tensor
+    real *h_dSdtyy, *_h_dSdtyy;
+    /// host xz-entry oft he time derivative of the deviatoric stress tensor
+    real *h_dSdtxz, *_h_dSdtxz;
+    /// host yz-entry of the time derivative of the deviatoric stress tensor
+    real *h_dSdtyz, *_h_dSdtyz;
+#endif // DIM == 3
+#endif // DIM > 1
+
     /// host local strain
-    real *h_localStrain;
-#endif
+    real *h_localStrain, *_h_localStrain;
+#endif // SOLID
 #if SOLID || NAVIER_STOKES
     /// host sigma/stress tensor
-    real *h_sigma;
+    real *h_sigma, *_h_sigma;
 #endif
 #if ARTIFICIAL_STRESS
     /// host tensile instability
@@ -262,16 +287,40 @@ public:
     real *d_eta;
 #endif
 #if SOLID
-    /// device deviatoric stress tensor
-    real *d_S;
-    /// device time derivative of deviatoric stress tensor
-    real *d_dSdt;
+    /// device xx-entry of the deviatoric stress tensor
+    real *d_Sxx, *_d_Sxx;
+#if DIM > 1
+    /// device xy-entry of the deviatoric stress tensor
+    real *d_Sxy, *_d_Sxy;
+#if DIM == 3
+    /// device yy-entry of the deviatoric stress tensor
+    real *d_Syy, *_d_Syy;
+    /// device xz-entry of the deviatoric stress tensor
+    real *d_Sxz, *_d_Sxz;
+    /// device yz-entry of the deviatoric stress tensor
+    real *d_Syz, *_d_Syz;
+#endif // DIM == 3
+#endif // DIM > 1
+    /// device xx-entry of the time derivative of the deviatoric stress tensor
+    real *d_dSdtxx, *_d_dSdtxx;
+#if DIM > 1
+    /// device xy-entry of the time derivative of the deviatoric stress tensor
+    real *d_dSdtxy, *_d_dSdtxy;
+#if DIM == 3
+    /// device yy-entry of the time derivative of the deviatoric stress tensor
+    real *d_dSdtyy, *_d_dSdtyy;
+    /// device xz-entry oft he time derivative of the deviatoric stress tensor
+    real *d_dSdtxz, *_d_dSdtxz;
+    /// device yz-entry of the time derivative of the deviatoric stress tensor
+    real *d_dSdtyz, *_d_dSdtyz;
+#endif // DIM == 3
+#endif // DIM > 1
     /// device local strain
-    real *d_localStrain;
-#endif
+    real *d_localStrain, *_d_localStrain;
+#endif // SOLID
 #if SOLID || NAVIER_STOKES
     /// device sigma/stress tensor
-    real *d_sigma;
+    real *d_sigma, *_d_sigma;
 #endif
 #if ARTIFICIAL_STRESS
     /// device tensile instability
@@ -466,10 +515,33 @@ public:
     real *d_drhodt;
 //#endif
 
-// TODO: add variables for Solids?
-
 #if VARIABLE_SML || INTEGRATE_SML
     real *d_dsmldt;
+#endif
+#if SOLID
+    real *d_Sxx;
+#if DIM > 1
+    real *d_Sxy;
+#if DIM == 3
+    real *d_Syy;
+    real *d_Sxz;
+    real *d_Syz;
+#endif // DIM == 3
+#endif // DIM > 1
+
+    real *d_dSdtxx;
+#if DIM > 1
+    real *d_dSdtxy;
+#if DIM == 3
+    real *d_dSdtyy;
+    real *d_dSdtxz;
+    real *d_dSdtyz;
+#endif // DIM == 3
+#endif // DIM > 1
+    real *d_localStrain;
+#endif // SOLID
+#if SOLID || NAVIER_STOKES
+    real *d_sigma;
 #endif
 
     /// device instance of `IntegratedParticles` class

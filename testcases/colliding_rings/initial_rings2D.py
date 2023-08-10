@@ -69,6 +69,8 @@ v2 = np.zeros((N, dim))
 m = np.ones(2*N)*mass # 2N because of two rings
 rho = np.ones(2*N)*density
 materialId = np.zeros(2*N, dtype=np.int8)
+#Sxx = np.zeros(2*N)
+#Sxy = np.zeros(2*N)
 
 # create ring 1
 counter = 0
@@ -101,6 +103,8 @@ h5f.create_dataset("v", data=v_final)
 h5f.create_dataset("m", data=m)
 h5f.create_dataset("materialId", data=materialId)
 h5f.create_dataset("rho", data=rho)
+#h5f.create_dataset("Sxx", data=Sxx)
+#h5f.create_dataset("Sxy", data=Sxy)
 
 h5f.close()
 print("Finished")

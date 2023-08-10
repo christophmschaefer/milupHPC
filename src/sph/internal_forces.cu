@@ -73,6 +73,24 @@ __global__ void SPH::Kernel::internalForces(::SPH::SPH_kernel kernel, Material *
 #endif
 #endif
 
+#if SOLID
+    real Sxx, dSxx;
+#if DIM > 1
+    real Sxy, dSxy;
+#if DIM == 3
+    real Syy, dSyy;
+    real Sxz, dSxz;
+    real Syz, dSyz;
+#endif
+#endif
+    real localStrain;
+#endif // SOLID
+
+#if SOLID || NAVIER_STOKES
+    real sigma[DIM*DIM];
+    real counter;
+#endif
+
 #if NAVIER_STOKES
     real eta;
     real zetaij;
@@ -118,12 +136,39 @@ __global__ void SPH::Kernel::internalForces(::SPH::SPH_kernel kernel, Material *
 #if INTEGRATE_SML
         particles->dsmldt[i] = 0.0;
 #endif
+#if SOLID
+        // set variables for testing purposes
+         Sxx = 1;
+         dSxx = 1;
+#if DIM > 1
+        Sxy = 2;
+        dSxy = 2;
+#if DIM == 3
+    Syy = 1;
+    dSyy = 1;
+    Sxz = 3;
+    dSxz = 3;
+    Syz = 4;
+    dSyz = 4;
+#endif // DIM == 3
+#endif // DIM > 1
+        localStrain = 10;
+#endif // SOLID
+#if SOLID || NAVIER_STOKES
+        counter = 0;
+#endif
 
         #pragma unroll
         for (d = 0; d < DIM; d++) {
             accels[d] = 0.0;
             accelsj[d] = 0.0;
             accelshearj[d] = 0.0;
+#if SOLID || NAVIER_STOKES
+            for (e = 0; e < DIM; e++) {
+                sigma[d * DIM + e] = counter;
+                counter += 1.0;
+            }
+#endif
         }
         sml = particles->sml[i];
 
@@ -462,6 +507,24 @@ __global__ void SPH::Kernel::internalForces(::SPH::SPH_kernel kernel, Material *
 #if INTEGRATE_ENERGY
         particles->dedt[i] = dedt;
 #endif // INTEGRATE_ENERGY
+#if SOLID
+        particles->Sxx[i] = Sxx;
+        particles->dSdtxx[i] = dSxx;
+#if DIM > 1
+        particles->Sxy[i] = Sxy;
+        particles->dSdtxy[i] = dSxy;
+#if DIM == 3
+        particles->Syy[i] = Syy;
+        particles->dSdtyy[i] = dSyy;
+        particles->Sxz[i] = Sxz;
+        particles->dSdtxz[i] = dSxz;
+        particles->Syz[i] = Syz;
+        particles->dSdtyz[i] = dSyz;
+#endif // DIM == 3
+#endif // DIM > 1
+        particles->localStrain[i] = localStrain;
+#endif // SOLID
+
 
     } // particle loop end
 

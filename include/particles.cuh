@@ -159,13 +159,37 @@ public:
 #endif
 
 #if SOLID
-    /// (pointer to) deviatoric stress tensor (array)
-    real *S; // deviatoric stress tensor (DIM * DIM)
-    /// (pointer to) time derivative of deviatoric stress tensor (array)
-    real *dSdt;
+    /// (pointer to) the xx-entry of the deviatoric stress tensor (array). The deviatoric stress tensor (DIM * DIM) is symmetric and traceless \f$ \sum_i S_{ii} = 0 $\f
+    real *Sxx;
+#if DIM > 1
+    /// (pointer to) the xy-entry of the deviatoric stress tensor (array). The deviatoric stress tensor (DIM * DIM) is symmetric and traceless \f$ \sum_i S_{ii} = 0 $\f
+    real *Sxy; // Sxy = Syx
+#if DIM == 3
+    /// (pointer to) the yy-entry of the deviatoric stress tensor (array). The deviatoric stress tensor (DIM * DIM) is symmetric and traceless \f$ \sum_i S_{ii} = 0 $\f
+    real *Syy;
+    /// (pointer to) the xz-entry of the deviatoric stress tensor (array). The deviatoric stress tensor (DIM * DIM) is symmetric and traceless \f$ \sum_i S_{ii} = 0 $\f
+    real *Sxz; // Sxz = Szx
+    /// (pointer to) the yz-entry of the deviatoric stress tensor (array). The deviatoric stress tensor (DIM * DIM) is symmetric and traceless \f$ \sum_i S_{ii} = 0 $\f
+    real *Syz; // Syz = Szy
+#endif // DIM == 3
+#endif // DIM == 1
+    /// (pointer to) xx-entry of the time derivative of deviatoric stress tensor (array)
+    real *dSdtxx;
+#if DIM > 1
+    /// (pointer to) xy-entry of the time derivative of deviatoric stress tensor (array)
+    real *dSdtxy;
+#if DIM == 3
+    /// (pointer to) yy-entry of the time derivative of deviatoric stress tensor (array)
+    real *dSdtyy;
+    /// (pointer to) xz-entrie of the time derivative of deviatoric stress tensor (array)
+    real *dSdtxz;
+    /// (pointer to) yz-entrie of the time derivative of deviatoric stress tensor (array)
+    real *dSdtyz;
+#endif // DIM == 3
+#endif // DIM > 1
     /// (pointer to) local strain (array)
     real *localStrain; // local strain
-#endif
+#endif // SOLID
 
 #if BALSARA_SWITCH
     real *divv;
@@ -427,16 +451,50 @@ public:
 #if NAVIER_STOKES
     CUDA_CALLABLE_MEMBER void setNavierStokes(real *Tshear, real *eta);
 #endif
+
 #if SOLID
+#if DIM == 1
     /**
-     * Setter, in dependence of `SOLID`
+     * @brief Setter, in dependence of `SOLID` (`DIM = 1`)
      *
-     * @param S
-     * @param dSdt
+     * @param Sxx deviatoric Stress \f$ S_xx \f$ entry
+     * @param dSdtxx time derivative of the deviatoric Stress \f$ \frac{dS_xx}{dt} \f$ entry
      * @param localStrain
      */
-    CUDA_CALLABLE_MEMBER void setSolid(real *S, real *dSdt, real *localStrain);
-#endif
+    CUDA_CALLABLE_MEMBER void setSolid(real *Sxx, real *dSdtxx, real *localStrain);
+#endif // DIM == 1
+#if DIM == 2
+    /**
+     * @brief Setter, in dependence of `SOLID` (`DIM = 2`)
+     *
+     * @param Sxx deviatoric Stress \f$ S_xx \f$ entry
+     * @param Sxy deviatoric Stress \f$ S_xy \f$ entry
+     * @param dSdtxx time derivative of the deviatoric Stress \f$ \frac{dS_xx}{dt} \f$ entry
+     * @param dSdtxy time derivative of the deviatoric Stress \f$ \frac{dS_xy}{dt} \f$ entry
+     * @param localStrain
+     */
+    CUDA_CALLABLE_MEMBER void setSolid(real *Sxx, real *Sxy,real *dSdtxx, real *dSdtxy,  real *localStrain);
+#endif //DIM == 2
+#if DIM == 3
+    /**
+     * @brief Setter, in dependence of `SOLID`(`DIM = 3`)
+     *
+     * @param Sxx deviatoric Stress \f$ S_xx \f$ entry
+     * @param Sxy deviatoric Stress \f$ S_xy \f$ entry
+     * @param Syy deviatoric Stress \f$ S_yy \f$ entry
+     * @param Sxz deviatoric Stress \f$ S_xz \f$ entry
+     * @param Syz deviatoric Stress \f$ S_yz \f$ entry
+     * @param dSdtxx time derivative of the deviatoric Stress \f$ \frac{dS_xx}{dt} \f$ entry
+     * @param dSdtxy time derivative of the deviatoric Stress \f$ \frac{dS_xy}{dt} \f$ entry
+     * @param dSdtyy time derivative of the deviatoric Stress \f$ \frac{dS_yy}{dt} \f$ entry
+     * @param dSdtxz time derivative of the deviatoric Stress \f$ \frac{dS_xz}{dt} \f$ entry
+     * @param dSdtyz time derivative of the deviatoric Stress \f$ \frac{dS_yz}{dt} \f$ entry
+     * @param localStrain
+     */
+    CUDA_CALLABLE_MEMBER void setSolid(real *Sxx, real *Sxy, real *Syy, real *Sxz, real *Syz,
+                                       real *dSdtxx, real *dSdtxy, real *dSdtyy, real *dSdtxz, real *dSdtyz, real *localStrain);
+#endif // DIM == 3
+#endif // SOLID
 #if SOLID || NAVIER_STOKES
     /**
      * Setter, in dependence of `SOLID` or `NAVIER_STOKES`
@@ -754,27 +812,99 @@ namespace ParticlesNS {
         }
 #endif
 #if SOLID
+#if DIM == 1
         /**
-         * Kernel call to setter, in dependence of `SOLID`
+         * Kernel call to setter, in dependence of `SOLID`(`DIM = 1`)
          *
          * @param particles
-         * @param S
-         * @param dSdt
+         * @param Sxx
+         * @param Sxy
+         * @param Syy
+         * @param dSdtxx
+         * @param dSdtxy
+         * @param dSdtyy
          * @param localStrain
          */
-        __global__ void setSolid(Particles *particles, real *S, real *dSdt, real *localStrain);
+        __global__ void setSolid(Particles *particles, real *Sxx,  real *dSdtxx, real *localStrain);
         namespace Launch {
             /**
-             * Wrapped kernel call to setter, in dependence of `SOLID`
-             *
-             * @param particles
-             * @param S
-             * @param dSdt
-             * @param localStrain
-             */
-            void setSolid(Particles *particles, real *S, real *dSdt, real *localStrain);
+            * wrapped Kernel call to setter, in dependence of `SOLID`(`DIM = 1`)
+            *
+            * @param particles
+            * @param Sxx
+            * @param dSdtxx
+            * @param localStrain
+            */
+            void setSolid(Particles *particles, real *Sxx, real *dSdtxx,  real *localStrain);
         }
-#endif
+#endif // DIM == 1
+#if DIM == 2
+        /**
+         * Kernel call to setter, in dependence of `SOLID`(`DIM = 2`)
+         *
+         * @param particles
+         * @param Sxx
+         * @param Sxy
+         * @param Syy
+         * @param dSdtxx
+         * @param dSdtxy
+         * @param dSdtyy
+         * @param localStrain
+         */
+        __global__ void setSolid(Particles *particles, real *Sxx, real *Sxy, real *dSdtxx, real *dSdtxy, real *localStrain);
+        namespace Launch {
+            /**
+            * wrapped Kernel call to setter, in dependence of `SOLID`(`DIM = 2`)
+            *
+            * @param particles
+            * @param Sxx
+            * @param Sxy
+            * @param dSdtxx
+            * @param dSdtxy
+            * @param localStrain
+            */
+            void setSolid(Particles *particles, real *Sxx, real *Sxy, real *dSdtxx, real *dSdtxy, real *localStrain);
+        }
+#endif // DIM == 2
+#if DIM == 3
+        /**
+         * Kernel call to setter, in dependence of `SOLID`(`DIM = 3`)
+         *
+         * @param particles
+         * @param Sxx
+         * @param Sxy
+         * @param Syy
+         * @param Sxz
+         * @param Syz
+         * @param dSdtxx
+         * @param dSdtxy
+         * @param dSdtyy
+         * @param dSdtxz
+         * @param dSdtyz
+         * @param localStrain
+         */
+        __global__ void setSolid(Particles *particles, real *Sxx, real *Sxy, real *Syy, real *Sxz, real *Syz, real *dSdtxx, real *dSdtxy, real *dSdtyy, real *dSdtxz, real *dSdtyz, real *localStrain);
+        namespace Launch {
+            /**
+            * wrapped Kernel call to setter, in dependence of `SOLID`(`DIM = 3`)
+            *
+            * @param particles
+            * @param Sxx
+            * @param Sxy
+            * @param Syy
+            * @param Sxz
+            * @param Syz
+            * @param dSdtxx
+            * @param dSdtxy
+            * @param dSdtyy
+            * @param dSdtxz
+            * @param dSdtyz
+            * @param localStrain
+            */
+            void setSolid(Particles *particles, real *Sxx, real *Sxy, real *Syy, real *Sxz, real *Syz, real *dSdtxx, real *dSdtxy, real *dSdtyy, real *dSdtxz, real *dSdtyz, real *localStrain);
+        }
+#endif // DIM == 3
+#endif // SOLID
 #if SOLID || NAVIER_STOKES
         /**
          * Kernel call to setter, in dependence of `SOLID` or `NAVIER_STOKES`
@@ -1019,6 +1149,31 @@ public:
 #if VARIABLE_SML || INTEGRATE_SML
     real *dsmldt;
 #endif
+#if SOLID
+    real *Sxx;
+#if DIM > 1
+    real *Sxy; // Sxy = Syx
+    real *Syy;
+#if DIM == 3
+    real *Sxz; // Sxz = Szx
+    real *Syz; // Syz = Szy
+#endif // DIM == 3
+#endif // DIM == 1
+    real *dSdtxx;
+#if DIM > 1
+    real *dSdtxy;
+#if DIM == 3
+    real *dSdtyy;
+    real *dSdtxz;
+    real *dSdtyz;
+#endif // DIM == 3
+#endif // DIM > 1
+
+    real *localStrain; // local strain
+#endif // SOLID
+#if SOLID || NAVIER_STOKES
+    real *sigma;
+#endif
 
     /**
      * Default constructor
@@ -1064,6 +1219,22 @@ public:
 
 #if VARIABLE_SML || INTEGRATE_SML
     CUDA_CALLABLE_MEMBER void setIntegrateSML(real *dsmldt);
+#endif
+
+#if SOLID
+#if DIM == 1
+    CUDA_CALLABLE_MEMBER void setSolid(real *Sxx, real *dSdtxx, real *localStrain);
+#endif
+#if DIM == 2
+    CUDA_CALLABLE_MEMBER void setSolid(real *Sxx, real *Sxy, real *dSdtxx, real *dSdtxy, real *localStrain);
+#endif
+#if DIM == 3
+    CUDA_CALLABLE_MEMBER void setSolid(real *Sxx, real *Sxy, real *Syy, real *Sxz, real *Syz, real *dSdtxx, real *dSdtxy, real *dSdtyy, real *dSdtxz, real *dSdtyz, real *localStrain);
+#endif
+#endif // SOLID
+
+#if SOLID || NAVIER_STOKES
+    CUDA_CALLABLE_MEMBER void setSolidNavierStokes(real *sigma);
 #endif
 
     /**
@@ -1155,7 +1326,39 @@ namespace IntegratedParticlesNS {
             void setIntegrateSML(IntegratedParticles *integratedParticles, real *dsmldt);
         }
 #endif
+#if SOLID
+#if DIM == 1
+        __global__ void setSolid(IntegratedParticles *integratedParticles, real *Sxx,  real *dSdtxx, real *localStrain);
+        namespace Launch {
 
+            void setSolid(IntegratedParticles *integratedParticles, real *Sxx, real *dSdtxx,  real *localStrain);
+        }
+#endif // DIM == 1
+#if DIM == 2
+        __global__ void setSolid(IntegratedParticles *integratedParticles, real *Sxx, real *Sxy, real *dSdtxx, real *dSdtxy, real *localStrain);
+        namespace Launch {
+
+            void setSolid(IntegratedParticles *integratedParticles, real *Sxx, real *Sxy, real *dSdtxx, real *dSdtxy,  real *localStrain);
+        }
+#endif // DIM == 2
+#if DIM == 3
+        __global__ void setSolid(IntegratedParticles *integratedParticles, real *Sxx, real *Sxy, real *Syy, real *Sxz, real *Syz, real *dSdtxx, real *dSdtxy, real *dSdtyy, real *dSdtxz, real *dSdtyz, real *localStrain);
+        namespace Launch {
+
+            void setSolid(IntegratedParticles *integratedParticles, real *Sxx, real *Sxy, real *Syy, real *Sxz, real *Syz, real *dSdtxx, real *dSdtxy, real *dSdtyy, real *dSdtxz, real *dSdtyz, real *localStrain);
+        }
+#endif // DIM == 3
+#endif // SOLID
+
+#if SOLID || NAVIER_STOKES
+        __global__ void setSolidNavierStokes(IntegratedParticles *integratedParticles, real *sigma);
+
+        namespace Launch {
+
+            void setSolidNavierStokes(IntegratedParticles *integratedParticles, real *sigma);
+
+        }
+#endif
     }
 }
 

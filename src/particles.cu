@@ -209,12 +209,40 @@ CUDA_CALLABLE_MEMBER void Particles::setArtificialViscosity(real *muijmax) {
     }
 #endif
 #if SOLID
-    CUDA_CALLABLE_MEMBER void Particles::setSolid(real *S, real *dSdt, real *localStrain) {
-        this->S = S;
-        this->dSdt = dSdt;
+#if DIM == 1
+    CUDA_CALLABLE_MEMBER void Particles::setSolid(real *Sxx, real *dSdtxx, real *localStrain) {
+        this->Sxx = Sxx;
+        this->dSdtxx = dSdtxx;
+        this->localStrain = localStrain;
+
+    }
+#endif // DIM == 1
+#if DIM == 2
+    CUDA_CALLABLE_MEMBER void Particles::setSolid(real *Sxx, real *Sxy, real *dSdtxx, real *dSdtxy,  real *localStrain) {
+        this->Sxx = Sxx;
+        this->Sxy = Sxy;
+        this->dSdtxx = dSdtxx;
+        this->dSdtxy =dSdtxy;
         this->localStrain = localStrain;
     }
-#endif
+#endif //DIM == 2
+#if DIM == 3
+
+    CUDA_CALLABLE_MEMBER void Particles::setSolid(real *Sxx, real *Sxy, real *Syy, real *Sxz, real *Syz, real *dSdtxx, real *dSdtxy, real *dSdtyy, real *dSdtxz, real *dSdtyz, real *localStrain){
+        this->Sxx = Sxx;
+        this->Sxy = Sxy;
+        this->Syy = Syy;
+        this->Sxz = Sxz;
+        this->Syz = Syz;
+        this->dSdtxx = dSdtxx;
+        this->dSdtxy = dSdtxy;
+        this->dSdtyy = dSdtyy;
+        this->dSdtxz = dSdtxz;
+        this->dSdtyz = dSdtyz;
+        this->localStrain = localStrain;
+    }
+#endif // DIM == 3
+#endif // SOLID
 #if SOLID || NAVIER_STOKES
     CUDA_CALLABLE_MEMBER void Particles::setSolidNavierStokes(real *sigma) {
         this->sigma = sigma;
@@ -807,14 +835,44 @@ namespace ParticlesNS {
         }
 #endif
 #if SOLID
-        __global__ void setSolid(Particles *particles, real *S, real *dSdt, real *localStrain) {
-            particles->setSolid(S, dSdt, localStrain);
+#if DIM == 1
+
+        __global__ void setSolid(Particles *particles, real *Sxx,  real *dSdtxx, real *localStrain) {
+            particles->setSolid(Sxx, dSdtxx,localStrain);
         }
-        void Launch::setSolid(Particles *particles, real *S, real *dSdt, real *localStrain) {
+
+        void Launch::setSolid(Particles *particles, real *Sxx, real *dSdtxx,  real *localStrain) {
             ExecutionPolicy executionPolicy(1, 1);
-            cuda::launch(false, executionPolicy, ::ParticlesNS::Kernel::setSolid, particles, S, dSdt, localStrain);
+            cuda::launch(false, executionPolicy, ::ParticlesNS::Kernel::setSolid, particles, Sxx, dSdtxx, localStrain);
         }
-#endif
+
+#endif // DIM == 1
+#if DIM == 2
+
+        __global__ void setSolid(Particles *particles, real *Sxx, real *Sxy, real *dSdtxx, real *dSdtxy, real *localStrain){
+             particles->setSolid(Sxx, Sxy, dSdtxx, dSdtxy, localStrain);
+            }
+        namespace Launch {
+            void setSolid(Particles *particles, real *Sxx, real *Sxy, real *dSdtxx, real *dSdtxy,real *localStrain) {
+                ExecutionPolicy executionPolicy(1, 1);
+                cuda::launch(false, executionPolicy, ::ParticlesNS::Kernel::setSolid, particles, Sxx, Sxy, dSdtxx, dSdtxy, localStrain);
+            }
+        }
+
+#endif // DIM == 2
+#if DIM == 3
+
+        __global__ void setSolid(Particles *particles, real *Sxx, real *Sxy, real *Syy, real *Sxz, real *Syz, real *dSdtxx, real *dSdtxy, real *dSdtyy, real *dSdtxz, real *dSdtyz, real *localStrain) {
+            particles->setSolid(Sxx, Sxy, Syy, Sxz, Syz, dSdtxx, dSdtxy, dSdtyy, dSdtxz,dSdtyz, localStrain);
+        }
+        void Launch::setSolid(Particles *particles, real *Sxx, real *Sxy, real *Syy, real *Sxz, real *Syz,
+                              real *dSdtxx, real *dSdtxy, real *dSdtyy, real *dSdtxz, real *dSdtyz, real *localStrain) {
+            ExecutionPolicy executionPolicy(1, 1);
+            cuda::launch(false, executionPolicy, ::ParticlesNS::Kernel::setSolid, particles, Sxx, Sxy, Syy, Sxz, Syz, dSdtxx, dSdtxy, dSdtyy, dSdtxz, dSdtyz, localStrain);
+        }
+#endif // DIM == 3
+#endif // SOLID
+
 #if SOLID || NAVIER_STOKES
         __global__ void setSolidNavierStokes(Particles *particles, real *sigma) {
             particles->setSolidNavierStokes(sigma);
@@ -1045,6 +1103,46 @@ CUDA_CALLABLE_MEMBER void IntegratedParticles::setIntegrateSML(real *dsmldt) {
     this->dsmldt = dsmldt;
 }
 #endif
+#if SOLID
+#if DIM == 1
+CUDA_CALLABLE_MEMBER void IntegratedParticles::setSolid(real *Sxx, real *dSdtxx, real *localStrain) {
+        this->Sxx = Sxx;
+        this->dSdtxx = dSdtxx;
+        this->localStrain = localStrain;
+
+    }
+#endif // DIM == 1
+#if DIM == 2
+CUDA_CALLABLE_MEMBER void IntegratedParticles::setSolid(real *Sxx, real *Sxy, real *dSdtxx, real *dSdtxy, real *localStrain) {
+    this->Sxx = Sxx;
+    this->Sxy = Sxy;
+    this->dSdtxx = dSdtxx;
+    this->dSdtxy =dSdtxy;
+    this->localStrain = localStrain;
+}
+#endif //DIM == 2
+#if DIM == 3
+
+CUDA_CALLABLE_MEMBER void IntegratedParticles::setSolid(real *Sxx, real *Sxy, real *Syy, real *Sxz, real *Syz, real *dSdtxx, real *dSdtxy, real *dSdtyy, real *dSdtxz, real *dSdtyz, real *localStrain){
+        this->Sxx = Sxx;
+        this->Sxy = Sxy;
+        this->Syy = Syy;
+        this->Sxz = Sxz;
+        this->Syz = Syz;
+        this->dSdtxx = dSdtxx;
+        this->dSdtxy = dSdtxy;
+        this->dSdtyy = dSdtyy;
+        this->dSdtxz = dSdtxz;
+        this->dSdtyz = dSdtyz;
+        this->localStrain = localStrain;
+    }
+#endif // DIM == 3
+#endif
+#if SOLID || NAVIER_STOKES
+    CUDA_CALLABLE_MEMBER void IntegratedParticles::setSolidNavierStokes(real *sigma) {
+    this->sigma = sigma;
+}
+#endif
 
 CUDA_CALLABLE_MEMBER void IntegratedParticles::reset(integer index) {
 
@@ -1072,6 +1170,19 @@ CUDA_CALLABLE_MEMBER void IntegratedParticles::reset(integer index) {
     drhodt[index] = 0.;
     cs[index] = 0.;
     sml[index] = 0.;
+#if SOLID
+    // TODO: add variables to be resetted
+    Sxx[index] = 0.;
+    dSdtxx[index] = 0.;
+#endif
+/*#if SOLID || NAVIER_STOKES
+    // TODO: add variables to be resetted
+    for(int i = 0; i < DIM; i++){
+        for( int j = 0; j < DIM; j++){
+            sigma[index*Pa]
+        }
+    }
+#endif*/
 #endif
 }
 
@@ -1189,6 +1300,59 @@ namespace IntegratedParticlesNS {
                 ExecutionPolicy executionPolicy(1, 1);
                 cuda::launch(false, executionPolicy, ::IntegratedParticlesNS::Kernel::setIntegrateSML,
                              integratedParticles, dsmldt);
+            }
+        }
+#endif
+#if SOLID
+#if DIM == 1
+
+        __global__ void setSolid(IntegratedParticles *integratedParticles, real *Sxx,  real *dSdtxx, real *localStrain) {
+            integratedParticles->setSolid(Sxx, dSdtxx,localStrain);
+        }
+
+        void Launch::setSolid(IntegratedParticles *integratedParticles, real *Sxx, real *dSdtxx,  real *localStrain) {
+            ExecutionPolicy executionPolicy(1, 1);
+            cuda::launch(false, executionPolicy, ::IntegratedParticlesNS::Kernel::setSolid, integratedParticles, Sxx, dSdtxx, localStrain);
+        }
+
+#endif // DIM == 1
+#if DIM == 2
+
+        __global__ void setSolid(IntegratedParticles *integratedParticles, real *Sxx, real *Sxy, real *dSdtxx, real *dSdtxy, real *localStrain){
+            integratedParticles->setSolid(Sxx, Sxy, dSdtxx, dSdtxy, localStrain);
+        }
+        namespace Launch {
+            void setSolid(IntegratedParticles *integratedParticles, real *Sxx, real *Sxy, real *dSdtxx, real *dSdtxy, real *localStrain) {
+                ExecutionPolicy executionPolicy(1, 1);
+                cuda::launch(false, executionPolicy, ::IntegratedParticlesNS::Kernel::setSolid, integratedParticles, Sxx, Sxy, dSdtxx, dSdtxy, localStrain);
+            }
+        }
+
+#endif // DIM == 2
+#if DIM == 3
+
+        __global__ void setSolid(IntegratedParticles *integratedParticles, real *Sxx, real *Sxy, real *Syy, real *Sxz, real *Syz,
+                                 real *dSdtxx, real *dSdtxy, real *dSdtyy, real *dSdtxz, real *dSdtyz, real *localStrain) {
+            integratedParticles->setSolid(Sxx, Sxy, Syy, Sxz, Syz, dSdtxx, dSdtxy, dSdtyy, dSdtxz,dSdtyz, localStrain);
+        }
+        void Launch::setSolid(IntegratedParticles *integratedParticles, real *Sxx, real *Sxy, real *Syy, real *Sxz, real *Syz,
+                              real *dSdtxx, real *dSdtxy, real *dSdtyy, real *dSdtxz, real *dSdtyz, real *localStrain) {
+            ExecutionPolicy executionPolicy(1, 1);
+            cuda::launch(false, executionPolicy, ::IntegratedParticlesNS::Kernel::setSolid, integratedParticles, Sxx, Sxy, Syy, Sxz, Syz,
+                         dSdtxx, dSdtxy, dSdtyy, dSdtxz, dSdtyz, localStrain);
+        }
+#endif // DIM == 3
+#endif
+#if SOLID || NAVIER_STOKES
+        __global__ void setSolidNavierStokes(IntegratedParticles *integratedParticles, real *sigma) {
+            integratedParticles->setSolidNavierStokes(sigma);
+        }
+
+        namespace Launch {
+            void setSolidNavierStokes(IntegratedParticles *integratedParticles, real *sigma) {
+                ExecutionPolicy executionPolicy(1, 1);
+                cuda::launch(false, executionPolicy, ::IntegratedParticlesNS::Kernel::setSolidNavierStokes,
+                             integratedParticles, sigma);
             }
         }
 #endif

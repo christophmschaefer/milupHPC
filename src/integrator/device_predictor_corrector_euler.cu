@@ -399,8 +399,8 @@ namespace PredictorCorrectorEulerNS {
                 temp = sml / particles->cs[i];
                 courant = cuda::math::min(courant, temp);
 
-                temp = COURANT_FACT * sml / (particles->cs[i] + 1.2 * materials[matId].artificialViscosity.alpha * particles->cs[i] +
-                            materials[matId].artificialViscosity.beta * particles->muijmax[i]);
+                temp = COURANT_FACT * sml / (particles->cs[i] + 1.2 * (materials[matId].artificialViscosity.alpha * particles->cs[i] +
+                            materials[matId].artificialViscosity.beta * particles->muijmax[i])); //TODO: check brackets
                 dtartvisc = min(dtartvisc, temp);
 
 #if DIM == 1

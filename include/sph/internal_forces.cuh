@@ -14,6 +14,8 @@
 #include "../subdomain_key_tree/subdomain.cuh"
 #include "../materials/material.cuh"
 #include "kernel.cuh"
+#include "../cuda_utils/linalg.cuh"
+#include "stress.cuh"
 
 namespace SPH {
     namespace Kernel {

@@ -98,7 +98,7 @@ MaterialHandler::MaterialHandler(const char *material_cfg) {
         config_setting_lookup_float(subset, "beta", &temp);
         h_materials[id].artificialViscosity.beta = temp;
 
-        // TODO: add artificial stress, shear modulus, preprocessor-directive?
+        // TODO: add artificial stress
 
         // eos
         subset = config_setting_get_member(material, "eos");
@@ -111,8 +111,7 @@ MaterialHandler::MaterialHandler(const char *material_cfg) {
         config_setting_lookup_float(subset, "polytropic_gamma", &temp);
         h_materials[id].eos.polytropic_gamma = temp;
 
-        // TODO: add other parameters, what if no polytropic gamma available in materical.cfg?
-        // if or switch for different EOS and corresponding look up and settings?
+        // TODO: add switch statement (for eos type) set all needed variables accordingly, the others to -1
         /* int config_setting_lookup_float [Function]
         (const config setting t * setting, const char * name, double * value)
          These functions look up the value of the child setting named "name" of the setting
@@ -125,12 +124,14 @@ MaterialHandler::MaterialHandler(const char *material_cfg) {
         h_materials[id].eos.bulk_modulus = temp;
         config_setting_lookup_float(subset, "n", &temp);
         h_materials[id].eos.n = temp;
+        config_setting_lookup_float(subset, "shear_modulus", &temp);
+        h_materials[id].eos.shear_modulus = temp;
+
     }
 
 
 }
 
-// TODO: add other parameters?
 MaterialHandler::MaterialHandler(integer numMaterials, integer ID, integer interactions, real alpha, real beta) :
                                     numMaterials(numMaterials) {
 
