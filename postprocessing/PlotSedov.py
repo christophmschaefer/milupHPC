@@ -64,7 +64,7 @@ class SedovSolution(object):
         # Characterize the solution
         f_min = self.c2 if self.w1 > w else self.c6
 
-        f = np.logspace(np.log10(f_min), 0, 1e5)
+        f = np.logspace(np.log10(f_min), 0, int(1e5))
 
         # Sort the etas for our interpolation function
         eta = self.parametrized_eta(f)

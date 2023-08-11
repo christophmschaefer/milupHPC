@@ -56,7 +56,7 @@ removeParticlesCriterion 0
 removeParticlesDimension 10.0
 
 ; execute load balancing
-loadBalancing false
+loadBalancing true
 ; interval for executing load balancing (every Nth step)
 loadBalancingInterval 1
 ; amount of bins for load balancing

@@ -55,7 +55,7 @@ removeParticlesCriterion 0
 removeParticlesDimension 10.0
 
 ; execute load balancing
-loadBalancing false
+loadBalancing true
 ; interval for executing load balancing (every Nth step)
 loadBalancingInterval 1
 ; amount of bins for load balancing
@@ -81,4 +81,4 @@ calculateCenterOfMass true
 gravityForceVersion 0
 ; fixed radius NN version for SPH (use [0])
 ; normal [0], brute-force [1], shared-memory [2], within-box [3]
-sphFixedRadiusNNVersion 3
+sphFixedRadiusNNVersion 0

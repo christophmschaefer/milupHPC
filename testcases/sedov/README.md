@@ -16,8 +16,8 @@ _____
 		* `#define SPH_SIM 1`
 		* `#define INTEGRATE_ENERGY 1`
 		* `#define INTEGRATE_DENSITY 0`
-		* `#define INTEGRATE_SML 1` or `0`
-		* `#define DECOUPLE_SML 1` or `0`
+		* `#define INTEGRATE_SML 1`
+		* `#define DECOUPLE_SML 0`
 		* `#define VARIABLE_SML 0`
 		* `#define SML_CORRECTION 0`
 		* `#define ARTIFICIAL_VISCOSITY 1`
@@ -105,7 +105,7 @@ typedef int idInteger;
 #define INTEGRATE_SML 1
 
 /// decouple smoothing length for pc integrator(s)
-#define DECOUPLE_SML 1
+#define DECOUPLE_SML 0
 
 /// variable smoothing length
 #define VARIABLE_SML 0

@@ -61,7 +61,7 @@ typedef int idInteger;
 #define INTEGRATE_SML 1
 
 /// decouple smoothing length for pc integrator(s)
-#define DECOUPLE_SML 1
+#define DECOUPLE_SML 0
 
 /// variable smoothing length
 #define VARIABLE_SML 0
