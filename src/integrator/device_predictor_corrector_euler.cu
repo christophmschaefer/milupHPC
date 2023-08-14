@@ -130,6 +130,8 @@ namespace PredictorCorrectorEulerNS {
         __global__ void corrector(Particles *particles, IntegratedParticles *predictor, real dt, int numParticles) {
 
             int i;
+            int d;
+            int e;
             // particle loop
             for (i = threadIdx.x + blockIdx.x * blockDim.x; i < numParticles; i+= blockDim.x * gridDim.x) {
 
@@ -182,7 +184,7 @@ namespace PredictorCorrectorEulerNS {
 // TODO: some SPH flag?
 #if INTEGRATE_DENSITY
                 particles->rho[i] = particles->rho[i] + dt/2 * (predictor->drhodt[i] + particles->drhodt[i]);
-                particles->drhodt[i] = 0.5 * (predictor->drhodt[i] + particles->drhodt[i]); // not needed? Debugging purposes?
+                particles->drhodt[i] = 0.5 * (predictor->drhodt[i] + particles->drhodt[i]);
                 //if (i == 12) { //(i % 1000 == 0) {
                 //    printf("corrector: rho[%i] = %e + %e/2 * (%e + %e)\n", i, particles->rho[i], dt, predictor->drhodt[i],
                 //           particles->drhodt[i]);
@@ -212,6 +214,38 @@ namespace PredictorCorrectorEulerNS {
 #else
                 particles->sml[i] = predictor->sml[i];
 #endif
+#if SOLID
+                particles->Sxx[i] = particles->Sxx[i] + dt/2* (predictor->dSdtxx[i] + particles->dSdtxx[i]);
+                particles->dSdtxx[i] = 0.5 * (particles->dSdtxx[i] + predictor->dSdtxx[i]);
+//                if(i == 1){
+//                    printf("CORRECTOR: Sxx: %e, dSxx: %e, dSxxpred: %e, Sxxpred: %e /n",particles->Sxx[i],particles->dSdtxx[i], predictor->dSdtxx[i], predictor->Sxx[i] );
+//                }
+#if DIM > 1
+                particles->Sxy[i] = particles->Sxy[i] + dt/2 * (predictor->dSdtxy[i] + particles->dSdtxy[i]);
+                particles->dSdtxy[i] = 0.5 * (particles->dSdtxy[i] + predictor->dSdtxy[i]);
+#if DIM == 3
+                particles->Syy[i] = particles->Syy[i] + dt/2 * (predictor->dSdtyy[i] + particles->dSdtyy[i]);
+                particles->dSdtyy[i] = 0.5 * (particles->dSdtyy[i] + predictor->dSdtyy[i]);
+                particles->Sxz[i] = particles->Sxz[i] + dt/2 * (predictor->dSdtxz[i] + particles->dSdtxz[i]);
+                particles->dSdtxz[i] = 0.5 * (particles->dSdtxz[i] + predictor->dSdtxz[i]);
+                particles->Syz[i] = particles->Syz[i] + dt/2 * (predictor->dSdtyz[i] + particles->dSdtyz[i]);
+                particles->dSdtyz[i] = 0.5 * (particles->dSdtyz[i] + predictor->dSdtyz[i]);
+#endif // DIM == 3
+#endif // DIM > 1
+                particles->localStrain[i] = 0.5 * (particles->localStrain[i] + predictor->localStrain[i]);
+#endif // SOLID
+#if SOLID || NAVIER_STOKES
+                #pragma unroll
+                for (d = 0; d < DIM; d++) {
+                    #pragma unroll
+                    for (e = 0; e < DIM; e++) {
+                        particles->sigma[CudaUtils::stressIndex(i,d,e)] =
+                                0.5 * ( particles->sigma[CudaUtils::stressIndex(i,d,e)] + predictor->sigma[CudaUtils::stressIndex(i,d,e)] ); // TODO: is this correct?
+                    }
+                }
+#endif // SOLID || NAVIER_STOKES
+
+
                 //if (i % 1000 == 0) {
                 //    printf("i: %i, particles->cs = %e, predictor->cs = %e\n", i, particles->cs[i], predictor->cs[i]);
                 //}
@@ -261,9 +295,24 @@ namespace PredictorCorrectorEulerNS {
 #else
                 predictor->sml[i] = particles->sml[i];
 #endif
+#if SOLID
+                predictor->Sxx[i] = particles->Sxx[i] + dt * particles->dSdtxx[i];
+//                if(i == 1){
+//                    printf("PREDICTOR: Sxx: %e, dSxx: %e, dSxxpred: %e, Sxxpred: %e /n",particles->Sxx[i],particles->dSdtxx[i], predictor->dSdtxx[i], predictor->Sxx[i] );
+//                }
+#if DIM > 1
+                predictor->Sxy[i] = particles->Sxy[i] + dt * particles->dSdtxy[i];
+#if DIM == 3
+                predictor->Syy[i] = particles->Syy[i] + dt * particles->dSdtyy[i];
+                predictor->Sxz[i] = particles->Sxz[i] + dt * particles->dSdtxz[i];
+                predictor->Syz[i] = particles->Syz[i] + dt * particles->dSdtyz[i];
+#endif // DIM == 3
+#endif // DIM > 1
+#endif //SOLID
                 predictor->cs[i] = particles->cs[i];
                 // TODO: why is this needed?
                 predictor->p[i] = particles->p[i];
+                // TODO: maybe add sigma?
                 //predictor->ax[i] = particles->ax[i];
                 //predictor->ay[i] = particles->ay[i];
                 //predictor->az[i] = particles->az[i];

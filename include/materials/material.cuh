@@ -75,7 +75,8 @@ struct EqOfSt {
         ar & rho_0;
         ar & bulk_modulus;
         ar & n;
-        ar &shear_modulus;
+        ar & shear_modulus;
+        ar & young_modulus;
     }
 
     int type;
@@ -85,6 +86,7 @@ struct EqOfSt {
     real bulk_modulus;
     real n;
     real shear_modulus;
+    real young_modulus;
 
     CUDA_CALLABLE_MEMBER EqOfSt();
     CUDA_CALLABLE_MEMBER EqOfSt(int type, real polytropic_K, real polytropic_gamma); // what about new members of struct EqOfSt?

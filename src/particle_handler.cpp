@@ -73,39 +73,39 @@ ParticleHandler::ParticleHandler(integer numParticles, integer numNodes) : numPa
     h_eta = new real[DIM * DIM * numParticles];
 #endif
 #if SOLID
-    _h_Sxx = new real[numParticles]{1};
+    _h_Sxx = new real[numParticles]{};
     h_Sxx = _h_Sxx;
 #if DIM > 1
-    _h_Sxy = new real[numParticles]{1};
+    _h_Sxy = new real[numParticles]{};
     h_Sxy = _h_Sxy;
 #if DIM == 3
-    _h_Syy = new real[numParticles]{0};
+    _h_Syy = new real[numParticles]{};
     h_Syy = _h_Syy;
-    _h_Sxz = new real[numParticles]{0};
+    _h_Sxz = new real[numParticles]{};
     h_Sxz = _h_Sxz;
-    _h_Syz = new real[numParticles]{0};
+    _h_Syz = new real[numParticles]{};
     h_Syz = _h_Syz;
 #endif // DIM == 3
 #endif // DIM > 1
-    _h_dSdtxx = new real[numParticles]{1};
+    _h_dSdtxx = new real[numParticles]{};
     h_dSdtxx = _h_dSdtxx;
 #if DIM > 1
-    _h_dSdtxy = new real[numParticles]{1};
+    _h_dSdtxy = new real[numParticles]{};
     h_dSdtxy = _h_dSdtxy;
 #if DIM == 3
-    _h_dSdtyy = new real[numParticles];
+    _h_dSdtyy = new real[numParticles]{};
     h_dSdtyy = _h_dSdtyy;
-    _h_dSdtxz = new real[numParticles];
+    _h_dSdtxz = new real[numParticles]{};
     h_dSdtxz = _h_dSdtxz;
-    _h_dSdtyz = new real[numParticles];
+    _h_dSdtyz = new real[numParticles]{};
     h_dSdtyz = _h_dSdtyz;
 #endif // DIM == 3
 #endif // DIM > 1
-    _h_localStrain = new real[numParticles]{1};
+    _h_localStrain = new real[numParticles]{};
     h_localStrain = _h_localStrain;
 #endif // SOLID
 #if SOLID || NAVIER_STOKES
-    _h_sigma = new real[DIM * DIM * numParticles]{1};
+    _h_sigma = new real[DIM * DIM * numParticles]{};
     h_sigma = _h_sigma;
 #endif
 #if ARTIFICIAL_STRESS
@@ -1116,7 +1116,7 @@ void ParticleHandler::copySPH(To::Target target) {
     cuda::copy(h_dSdtyz, d_dSdtyz, length, target);
 #endif // DIM == 3
 #endif // DIM >1
-    cuda::copy(h_localStrain, d_localStrain, length, target); // TODO: what is the problem?
+    cuda::copy(h_localStrain, d_localStrain, length, target);
 #endif // SOLID
 #if SOLID || NAVIER_STOKES
     cuda::copy(h_sigma, d_sigma, length*DIM*DIM, target);

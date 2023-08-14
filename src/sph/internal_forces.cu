@@ -74,22 +74,19 @@ __global__ void SPH::Kernel::internalForces(::SPH::SPH_kernel kernel, Material *
 #endif
 
 #if SOLID
-    real Sxx, dSxx;
+    real sigma_i[DIM][DIM], sigma_j[DIM][DIM];
+    real S_i[DIM][DIM];
+    real edot[DIM][DIM], rdot[DIM][DIM];
+    real dSxx;
 #if DIM > 1
-    real Sxy, dSxy;
+    real dSxy;
 #if DIM == 3
-    real Syy, dSyy;
-    real Sxz, dSxz;
-    real Syz, dSyz;
+    real dSyy;
+    real dSxz;
+    real dSyz;
 #endif
 #endif
-    real localStrain;
 #endif // SOLID
-
-#if SOLID || NAVIER_STOKES
-    real sigma[DIM*DIM];
-    real counter;
-#endif
 
 #if NAVIER_STOKES
     real eta;
@@ -136,26 +133,15 @@ __global__ void SPH::Kernel::internalForces(::SPH::SPH_kernel kernel, Material *
 #if INTEGRATE_SML
         particles->dsmldt[i] = 0.0;
 #endif
+
 #if SOLID
-        // set variables for testing purposes
-         Sxx = 1;
-         dSxx = 1;
-#if DIM > 1
-        Sxy = 2;
-        dSxy = 2;
-#if DIM == 3
-    Syy = 1;
-    dSyy = 1;
-    Sxz = 3;
-    dSxz = 3;
-    Syz = 4;
-    dSyz = 4;
-#endif // DIM == 3
-#endif // DIM > 1
-        localStrain = 10;
-#endif // SOLID
-#if SOLID || NAVIER_STOKES
-        counter = 0;
+        for (d = 0; d < DIM; d++) {
+            for (e = 0; e < DIM; e++) {
+                // set rotation rate and strain rate tensor to zero
+                edot[d][e] = 0.0;
+                rdot[d][e] = 0.0;
+            }
+        }
 #endif
 
         #pragma unroll
@@ -163,12 +149,6 @@ __global__ void SPH::Kernel::internalForces(::SPH::SPH_kernel kernel, Material *
             accels[d] = 0.0;
             accelsj[d] = 0.0;
             accelshearj[d] = 0.0;
-#if SOLID || NAVIER_STOKES
-            for (e = 0; e < DIM; e++) {
-                sigma[d * DIM + e] = counter;
-                counter += 1.0;
-            }
-#endif
         }
         sml = particles->sml[i];
 
@@ -239,7 +219,7 @@ __global__ void SPH::Kernel::internalForces(::SPH::SPH_kernel kernel, Material *
 
             #pragma unroll
             for (d = 0; d < DIM; d++) {
-                accelsj[d] = 0.0;
+                accelsj[d] = 0.0; // needs to be set to zero for every interaction partner
             }
 
 #if (VARIABLE_SML || INTEGRATE_SML) // || DEAL_WITH_TOO_MANY_INTERACTIONS)
@@ -335,6 +315,57 @@ __global__ void SPH::Kernel::internalForces(::SPH::SPH_kernel kernel, Material *
             }
             //printf("pij: vr = %e\n", vr);
 
+#if SOLID
+            // get sigma_i
+#pragma unroll
+            for (d = 0; d < DIM; d++) {
+#pragma unroll
+                for (e = 0; e < DIM; e++) {
+                    sigma_i[d][e] = particles->sigma[CudaUtils::stressIndex(i, d, e)];
+                }
+            }
+            // get sigma_j
+#pragma unroll
+            for (d = 0; d < DIM; d++) {
+#pragma unroll
+                for (e = 0; e < DIM; e++) {
+                    sigma_j[d][e] = particles->sigma[CudaUtils::stressIndex(j, d, e)];
+                }
+            }
+
+            // calculate edot and rdot
+            // edot_ab = 0.5 * (d_b v_a + d_a v_b)
+            // rdot_ab = 0.5 * (d_b v_a - d_a v_b)
+            tmp = -0.5*particles->mass[j]/particles->rho[j];
+            edot[0][0] += tmp*(dvx*dWdx[0] + dvx*dWdx[0]);
+#if DIM > 1
+            edot[0][1] += tmp*(dvx*dWdx[1] + dvy*dWdx[0]);
+            //edot[1][0] += tmp*(dvy*dWdx[0] + dvx*dWdx[1]);
+
+#if DIM == 3
+            edot[1][1] += tmp*(dvy*dWdx[1] + dvy*dWdx[1]);
+            edot[0][2] += tmp*(dvx*dWdx[2] + dvz*dWdx[0]);
+            edot[1][2] += tmp*(dvy*dWdx[2] + dvz*dWdx[1]);
+            //edot[2][0] += tmp*(dvz*dWdx[0] + dvx*dWdx[2]);
+            //edot[2][1] += tmp*(dvz*dWdx[1] + dvy*dWdx[2]);
+            //edot[2][2] += tmp*(dvz*dWdx[2] + dvz*dWdx[2]);
+#endif // DIM == 3
+#endif // DIM > 1
+            rdot[0][0] += tmp*(dvx*dWdx[0] - dvx*dWdx[0]);
+#if DIM > 1
+            rdot[0][1] += tmp*(dvx*dWdx[1] - dvy*dWdx[0]);
+            rdot[1][0] += tmp*(dvy*dWdx[0] - dvx*dWdx[1]);
+            rdot[1][1] += tmp*(dvy*dWdx[1] - dvy*dWdx[1]);
+#if DIM == 3
+            rdot[0][2] += tmp*(dvx*dWdx[2] - dvz*dWdx[0]);
+            rdot[1][2] += tmp*(dvy*dWdx[2] - dvz*dWdx[1]);
+            rdot[2][0] += tmp*(dvz*dWdx[0] - dvx*dWdx[2]);
+            rdot[2][1] += tmp*(dvz*dWdx[1] - dvy*dWdx[2]);
+            rdot[2][2] += tmp*(dvz*dWdx[2] - dvz*dWdx[2]);
+#endif // DIM == 3
+#endif // DIM > 1
+#endif // SOLID
+
             pij = 0.0;
 
             // artificial viscosity force only if v_ij * r_ij < 0
@@ -404,6 +435,23 @@ __global__ void SPH::Kernel::internalForces(::SPH::SPH_kernel kernel, Material *
 #endif // KLEY_VISCOSITY
 #endif // NAVIER_STOKES
 
+#if SOLID
+            // calculate acceleration for Solids
+            for (d = 0; d < DIM; d++) {
+                accelsj[d] = 0;
+                for(dd = 0; dd < DIM; dd++){
+#if( SPH_EQU_VERSION == 1)
+                    accelsj[d] = particles->mass[j] *(sigma_i[d][dd]/(particles->rho[i]*particles->rho[i]) + sigma_j[d][dd]/(particles->rho[j]*particles->rho[j]))*dWdx[dd];
+#elif(SPH_EQU_VERSION == 2)
+                    accelsj[d] = particles->mass[j] * (sigma_j[d][dd]+sigma_i[d][dd])/(particles->rho[i]*particles->rho[j]) *dWdx[dd];
+#else
+#error Invalid choice of SPH_EQU_VERSION in parameter.h
+#endif // SPH_EQU_VERSION
+                    accels[d] += accelsj[d];
+                }
+            }
+#else // NOT SOLID
+            // calculate acceleration for hydro
 #if (SPH_EQU_VERSION == 1)
             #pragma unroll
             for (d = 0; d < DIM; d++) {
@@ -417,6 +465,7 @@ __global__ void SPH::Kernel::internalForces(::SPH::SPH_kernel kernel, Material *
                 accels[d] += accelsj[d];
             }
 #endif // SPH_EQU_VERSION
+#endif // SOLID
 
             //if (std::isnan(accelsj[0])) {
             //    cudaTerminate("accelsj[0] = %e\n", accelsj[0]);
@@ -428,7 +477,7 @@ __global__ void SPH::Kernel::internalForces(::SPH::SPH_kernel kernel, Material *
                 accels[d] += accelshearj[d];
             }
 #endif
-
+            // add artificial viscosity
             accels[0] += particles->mass[j]*(-pij)*dWdx[0];
 #if DIM > 1
             accels[1] += particles->mass[j]*(-pij)*dWdx[1];
@@ -440,7 +489,8 @@ __global__ void SPH::Kernel::internalForces(::SPH::SPH_kernel kernel, Material *
             //    cudaTerminate("accels[0] = %e, mass = %e, pij = %e, dWdx[0] = %e\n", accels[0],
             //                  particles->mass[j], pij, dWdx[0]);
             //}
-            drhodt += particles->rho[i]/particles->rho[j] * particles->mass[j] * vvnablaW; // calc drhodt TODO: delete this comment
+            // calculate drho/dt
+            drhodt += particles->rho[i]/particles->rho[j] * particles->mass[j] * vvnablaW;
 
 #if INTEGRATE_SML
             // minus since vvnablaW is v_i - v_j \nabla W_ij
@@ -507,22 +557,76 @@ __global__ void SPH::Kernel::internalForces(::SPH::SPH_kernel kernel, Material *
 #if INTEGRATE_ENERGY
         particles->dedt[i] = dedt;
 #endif // INTEGRATE_ENERGY
+
 #if SOLID
-        particles->Sxx[i] = Sxx;
-        particles->dSdtxx[i] = dSxx;
+        // get S
+        // deviatoric stress tensor is symmetric and traceless
+#if DIM == 1
+        S_i[0][0] = particles->Sxx[i];
+#elif DIM == 2
+        S_i[0][0] = particles->Sxx[i];
+        S_i[0][1] = S_i[1][0] = particles->Sxy[i];
+        S_i[1][1] = -particles->Sxx[i];
+#else // DIM == 3
+        S_i[0][0] = particles->Sxx[i];
+        S_i[0][1] = S_i[1][0] = particles->Sxy[i];
+        S_i[1][1] = particles->Syy[i];
+        S_i[0][2] = S_i[2][0] = particles->Sxz[i];
+        S_i[1][2] = S_i[2][1] = particles->Syz[i];
+        S_i[2][2] = - (particles->Sxx[i] + particles->Syy[i]);
+#endif // DIM
+        dSxx = 0;
 #if DIM > 1
-        particles->Sxy[i] = Sxy;
+        dSxy = 0;
+#if DIM == 3
+        dSyy = 0;
+        dSxz = 0;
+        dSyz = 0;
+#endif // DIM == 3
+#endif // DIM > 1
+        //calculate dSdt
+        real shear = materials[matId].eos.shear_modulus;
+        real bulk = materials[matId].eos.bulk_modulus;
+        real young = materials[matId].eos.young_modulus;
+        dSxx += 2.0 * shear * (edot[0][0] -  edot[0][0] / 3.0);
+#if DIM > 1
+        dSxy += 2.0 * shear * edot[0][1];
+#if DIM == 3
+        dSyy += 2.0 * shear * (edot[1][1] - edot[1][1] / 3.0) ;
+        dSxz += 2.0 * shear * edot[0][2];
+        dSyz += 2.0 * shear * edot[1][2];
+#endif // DIM == 3
+#endif // DIM > 1
+#pragma unroll
+        for (d = 0; d < DIM; d++) {
+            dSxx += S_i[0][d] * rdot[d][0] - rdot[0][d] * S_i[d][0];
+#if DIM > 1
+            dSxy += S_i[0][d] * rdot[d][1] - rdot[0][d] * S_i[d][1];
+#if DIM  == 3
+            dSyy += S_i[1][d] * rdot[d][1] - rdot[1][d] * S_i[d][1];
+            dSxz += S_i[0][d] * rdot[d][2] - rdot[0][d] * S_i[d][2];
+            dSyz += S_i[1][d] * rdot[d][2] - rdot[1][d] * S_i[d][2];
+#endif // DIM > 1
+#endif // DIM  == 3
+        }
+
+
+// remember dSdt
+        particles->dSdtxx[i] = dSxx;
+//        if(i == 1){
+//            printf("INTERNALFORCES: Sxx: %e, dSxx: %e /n",particles->Sxx[i], particles->dSdtxx[i] );
+//        }
+#if DIM > 1
         particles->dSdtxy[i] = dSxy;
 #if DIM == 3
-        particles->Syy[i] = Syy;
         particles->dSdtyy[i] = dSyy;
-        particles->Sxz[i] = Sxz;
         particles->dSdtxz[i] = dSxz;
-        particles->Syz[i] = Syz;
         particles->dSdtyz[i] = dSyz;
 #endif // DIM == 3
 #endif // DIM > 1
-        particles->localStrain[i] = localStrain;
+        real tensileMax = 0.0;
+        tensileMax = CudaUtils::calculateMaxEigenvalue(sigma_i);
+        particles->localStrain[i] = tensileMax/young;
 #endif // SOLID
 
 

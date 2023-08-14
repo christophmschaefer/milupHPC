@@ -2869,8 +2869,7 @@ real Miluphpc::parallel_sph() {
     profiler.value2file(ProfilerIds::Time::SPH::resend, time);
 
     totalTime += time;
-    // TODO: add calc of Stress or add in internalforces.cu?
-    // TODO: and calc of artificial Stress or add in internalforces.cu?
+    // TODO: and calc of artificial Stress
 #if SOLID
     Logger(DEBUG) << "Stress";
     time = SPH::Kernel::Launch::calculateStress(particleHandler->d_particles, numParticlesLocal);

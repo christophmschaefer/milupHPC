@@ -11,6 +11,7 @@
 #include "../particles.cuh"
 #include "../materials/material.cuh"
 #include "../simulation_time.cuh"
+#include "../cuda_utils/linalg.cuh"
 
 /// predictor corrector euler (Heun) integrator
 namespace PredictorCorrectorEulerNS {

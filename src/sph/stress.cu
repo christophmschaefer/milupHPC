@@ -51,19 +51,22 @@
                 sigma[7] = Syz;
                 sigma[8] = -(Sxx+Syy);
 #endif // DIM
-
+#pragma unroll
                 for( d = 0; d < DIM; d++){
+#pragma unroll
                     for(e = 0; e < DIM; e++){
                         if(d == e) {
-                            sigma[d*DIM+e] -= p;
+                            sigma[CudaUtils::matrixIndex(d,e)] -= p;
                         }
                     }
                 }
 
                 // remember stress
+#pragma unroll
                 for (d = 0; d < DIM; d++) {
+#pragma unroll
                     for (e = 0; e < DIM; e++) {
-                        particles->sigma[CudaUtils::stressIndex(i,d,e)] = sigma[d*DIM+e];
+                        particles->sigma[CudaUtils::stressIndex(i,d,e)] = sigma[CudaUtils::matrixIndex(d,e)];
                     }
                 }
 

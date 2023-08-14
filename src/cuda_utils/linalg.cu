@@ -13,6 +13,11 @@ namespace CudaUtils {
         return particleIndex*DIM*DIM+row*DIM+col;
     }
 
+    __device__ int matrixIndex(int row, int col)
+    {
+        return row*DIM+col;
+    }
+
     __device__ void copyMatrix(real src[DIM][DIM], real dst[DIM][DIM]) {
         int i, j;
 

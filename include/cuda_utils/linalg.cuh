@@ -28,9 +28,14 @@ namespace CudaUtils {
     __device__ int sign(real x);
 
     /**
-     * @brief map `[i][j]` to `[i*DIM*DIM+j]` for the tensors
+     * @brief map particleIndex and entry`[i][j]` to `[particleIndex*DIM*DIM+i*DIM+j]` for the tensors
      */
     __device__ int stressIndex(int particleIndex, int row, int col);
+
+    /**
+     * @brief map `[i][j]` to `[i*DIM+j]` for the tensors
+     */
+    __device__ int matrixIndex(int row, int col);
 
     /**
      * @brief Deep copy of matrix.

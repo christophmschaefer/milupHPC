@@ -126,6 +126,11 @@ MaterialHandler::MaterialHandler(const char *material_cfg) {
         h_materials[id].eos.n = temp;
         config_setting_lookup_float(subset, "shear_modulus", &temp);
         h_materials[id].eos.shear_modulus = temp;
+#if SOLID
+        h_materials[id].eos.young_modulus = 9.0*h_materials[id].eos.bulk_modulus*h_materials[id].eos.shear_modulus/(3.0*h_materials[id].eos.bulk_modulus+h_materials[id].eos.shear_modulus);
+#else
+        h_materials[id].eos.young_modulus = -1.0;
+#endif
 
     }
 
