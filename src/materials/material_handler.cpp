@@ -98,7 +98,16 @@ MaterialHandler::MaterialHandler(const char *material_cfg) {
         config_setting_lookup_float(subset, "beta", &temp);
         h_materials[id].artificialViscosity.beta = temp;
 
-        // TODO: add artificial stress
+#if ARTIFICIAL_STRESS
+        // artificial stress
+        subset = config_setting_get_member(material, "artificial_stress");
+        config_setting_lookup_float(subset, "exponent_tensor", &temp);
+        h_materials[id].artificialStress.exponent_tensor = temp;
+        config_setting_lookup_float(subset, "epsilon_stress", &temp);
+        h_materials[id].artificialStress.epsilon_stress = temp;
+        config_setting_lookup_float(subset, "mean_particle_distance", &temp);
+        h_materials[id].artificialStress.mean_particle_distance = temp;
+#endif
 
         // eos
         subset = config_setting_get_member(material, "eos");
@@ -127,7 +136,16 @@ MaterialHandler::MaterialHandler(const char *material_cfg) {
         config_setting_lookup_float(subset, "shear_modulus", &temp);
         h_materials[id].eos.shear_modulus = temp;
 #if SOLID
-        h_materials[id].eos.young_modulus = 9.0*h_materials[id].eos.bulk_modulus*h_materials[id].eos.shear_modulus/(3.0*h_materials[id].eos.bulk_modulus+h_materials[id].eos.shear_modulus);
+#if DIM == 3
+        // young = 9*K*mu/(3*K + mu)
+        h_materials[id].eos.young_modulus = 9.0*h_materials[id].eos.bulk_modulus*h_materials[id].eos.shear_modulus / (3.0*h_materials[id].eos.bulk_modulus+h_materials[id].eos.shear_modulus);
+
+#elif DIM == 2
+        // young = 4*K_2d*mu_2d / (K_2d + mu_2D)
+        h_materials[id].eos.young_modulus = 4.0*h_materials[id].eos.bulk_modulus*h_materials[id].eos.shear_modulus / (h_materials[id].eos.bulk_modulus + h_materials[id].eos.shear_modulus);
+#else
+       h_materials[id].eos.young_modulus = -1.0;
+#endif
 #else
         h_materials[id].eos.young_modulus = -1.0;
 #endif

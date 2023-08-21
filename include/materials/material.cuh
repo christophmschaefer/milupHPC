@@ -52,8 +52,32 @@ struct ArtificialViscosity {
     CUDA_CALLABLE_MEMBER ArtificialViscosity();
     CUDA_CALLABLE_MEMBER ArtificialViscosity(real alpha, real beta);
 };
+#if ARTIFICIAL_STRESS
+/**
+ * @brief Artificial stress parameters.
+ */
+struct ArtificialStress {
 
-// TODO: add struct Artificial Stress?
+    friend class boost::serialization::access;
+    /**
+     * @brief Serialization function for boost::mpi functionality.
+     *
+     * @tparam Archive
+     * @param ar
+     * @param version
+     */
+    template<class Archive>
+    void serialize(Archive &ar, const unsigned int version) {
+        ar & exponent_tensor;
+        ar & epsilon_stress;
+        ar & mean_particle_distance;
+    }
+
+    real exponent_tensor;
+    real epsilon_stress;
+    real mean_particle_distance;
+};
+#endif
 /**
  * @brief Equation of states.
  */
@@ -115,8 +139,10 @@ public:
         ar & interactions;
         ar & sml;
         ar & artificialViscosity;
+#if ARTIFICIAL_STRESS
+        ar & artificialStress;
+#endif
         ar & eos;
-        // TODO: add Artificial Stress?
     }
 
     integer ID;
@@ -124,8 +150,10 @@ public:
     real sml;
 
     ArtificialViscosity artificialViscosity;
+#if ARTIFICIAL_STRESS
+    ArtificialStress artificialStress;
+#endif
     EqOfSt eos;
-    // TODO: Artificial Stress
 
     CUDA_CALLABLE_MEMBER Material();
     CUDA_CALLABLE_MEMBER ~Material();

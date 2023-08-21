@@ -137,7 +137,7 @@ public:
 #endif
 #if ARTIFICIAL_STRESS
     /// host tensile instability
-    real *h_R;
+    real *h_R, *_h_R;
 #endif
 #if BALSARA_SWITCH
     real *h_divv;
@@ -324,7 +324,7 @@ public:
 #endif
 #if ARTIFICIAL_STRESS
     /// device tensile instability
-    real *d_R;
+    real *d_R, *_d_R;
 #endif
 #if BALSARA_SWITCH
     real *d_divv;
@@ -542,6 +542,9 @@ public:
 #endif // SOLID
 #if SOLID || NAVIER_STOKES
     real *d_sigma;
+#endif
+#if ARTIFICIAL_STRESS
+    real *d_R;
 #endif
 
     /// device instance of `IntegratedParticles` class

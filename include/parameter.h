@@ -35,7 +35,7 @@ typedef int idInteger;
 #define SAFETY_LEVEL 3
 
 /// Dimension of the problem
-#define DIM 2
+#define DIM 3
 #define power_two(x) (1 << (x))
 #define POW_DIM power_two(DIM)
 
@@ -90,7 +90,7 @@ typedef int idInteger;
 #define SHEPARD_CORRECTION 0
 #define SOLID 1
 #define NAVIER_STOKES 0
-#define ARTIFICIAL_STRESS 0
+#define ARTIFICIAL_STRESS 1
 #define POROSITY 0
 #define ZERO_CONSISTENCY 0
 #define LINEAR_CONSISTENCY 0

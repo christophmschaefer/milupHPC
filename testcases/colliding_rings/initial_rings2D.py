@@ -6,7 +6,7 @@ import h5py
 """
 this program creates two 2-D rings (z = 0) around the origin which are then shifted to their final positions
 used for colliding rings testcase, see Gray, Monaghan, Swift SPH elastic dynamics, journal of Computer methods
-in applied mechanics and engineering
+in applied mechanics and engineering (2001)
 """
 # Dim of Rings
 dim = 2

@@ -1174,6 +1174,9 @@ public:
 #if SOLID || NAVIER_STOKES
     real *sigma;
 #endif
+#if ARTIFICIAL_STRESS
+    real *R;
+#endif
 
     /**
      * Default constructor
@@ -1235,6 +1238,9 @@ public:
 
 #if SOLID || NAVIER_STOKES
     CUDA_CALLABLE_MEMBER void setSolidNavierStokes(real *sigma);
+#endif
+#if ARTIFICIAL_STRESS
+    CUDA_CALLABLE_MEMBER void setArtificialStress(real *R);
 #endif
 
     /**
@@ -1357,6 +1363,14 @@ namespace IntegratedParticlesNS {
 
             void setSolidNavierStokes(IntegratedParticles *integratedParticles, real *sigma);
 
+        }
+#endif
+#if ARTIFICIAL_STRESS
+        __global__ void setArtificialStress(IntegratedParticles *integratedParticles, real *R);
+
+        namespace Launch {
+
+            void setArtificialStress(IntegratedParticles *integratedParticles, real *R);
         }
 #endif
     }

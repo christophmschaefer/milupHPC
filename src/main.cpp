@@ -381,7 +381,7 @@ int main(int argc, char** argv)
         Logger(TRACE) << "\n\n";
         Logger(TRACE) << "---------------FINISHED---------------";
         Logger(TRACE) << "Input file: " << parameters.inputFile;
-        Logger(TRACE) << "Config file: " << parameters.materialConfigFile;
+        Logger(TRACE) << "Config file: " << configFile;
         Logger(TRACE) << "Material config: " << parameters.materialConfigFile;
         if (LOGCFG.write2LogFile) {
             Logger(TRACE) << "Log file saved to: " << LOGCFG.logFileName;

@@ -12,7 +12,7 @@
             real Syy, Sxz, Syz;
 #endif
 #endif
-            real sigma[DIM*DIM];
+            real sigma[DIM][DIM];
 
             int d;
             int e;
@@ -31,32 +31,28 @@
 #endif
                 p = particles->p[i];
 
-                // Caluclate stress
+                // Calculate stress
 #if DIM == 1
                 sigma[0] = Sxx;
 #elif DIM == 2
                 //sigma = {Sxx, Sxy, Sxy, -Sxx};
-                sigma[0] = Sxx;
-                sigma[1] = Sxy;
-                sigma[2] = Sxy;
-                sigma[3] = -Sxx;
+                sigma[0][0] = Sxx;
+                sigma[1][0] = sigma[0][1] = Sxy;
+                sigma[1][1] = -Sxx;
 #else
-                sigma[0] = Sxx;
-                sigma[1] = Sxy;
-                sigma[2] = Sxz;
-                sigma[3] = Sxy;
-                sigma[4] = Syy;
-                sigma[5] = Syz;
-                sigma[6] = Sxz;
-                sigma[7] = Syz;
-                sigma[8] = -(Sxx+Syy);
+                sigma[0][0] = Sxx;
+                sigma[1][0] = sigma[0][1] = Sxy;
+                sigma[1][1] = Syy;
+                sigma[1][2] = sigma[2][1] = Syz;
+                sigma[2][0] = sigma[0][2] = Sxz;
+                sigma[2][2] = -(Sxx+Syy);
 #endif // DIM
 #pragma unroll
                 for( d = 0; d < DIM; d++){
 #pragma unroll
                     for(e = 0; e < DIM; e++){
                         if(d == e) {
-                            sigma[CudaUtils::matrixIndex(d,e)] -= p;
+                            sigma[d][e] -= p;
                         }
                     }
                 }
@@ -66,7 +62,7 @@
                 for (d = 0; d < DIM; d++) {
 #pragma unroll
                     for (e = 0; e < DIM; e++) {
-                        particles->sigma[CudaUtils::stressIndex(i,d,e)] = sigma[CudaUtils::matrixIndex(d,e)];
+                        particles->sigma[CudaUtils::stressIndex(i,d,e)] = sigma[d][e];
                     }
                 }
 

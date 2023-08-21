@@ -297,6 +297,9 @@ void Miluphpc::prepareSimulation() {
     Logger(DEBUG) << "sigma...";
     cuda::copy(particleHandler->h_sigma, particleHandler->d_sigma, DIM * DIM * numParticles, To::device);
 #endif // SOLID || NAVIER_STOKES
+#if ARTIFICIAL_STRESS
+    cuda::copy(particleHandler->h_R, particleHandler->d_R, DIM*DIM*numParticles, To::device);
+#endif
 #endif // SPH_SIM
 
     if (simulationParameters.removeParticles) {
@@ -3418,6 +3421,9 @@ real Miluphpc::particles2file(int step) {
     std::vector<size_t> space = spacespace.getDimensions();
     std::cout << space[0] <<"  " << space[1] << std::endl;*/ // TODO: delete this
 #endif
+#if ARTIFICIAL_STRESS
+    HighFive::DataSet h5_artificial_stress = h5file.createDataSet<real>("/artificialStress", HighFive::DataSpace(dataSpaceDimsTensor));
+#endif
 #endif // SPH_SIM
 
     HighFive::DataSet h5_totalEnergy;
@@ -3473,13 +3479,20 @@ real Miluphpc::particles2file(int step) {
     std::vector<std::vector<real>> sigma; // 2-D vector to hold tensor Data (DIM*DIM)
 #endif // DIM == 1
 #endif
+#if ARTIFICIAL_STRESS
+#if DIM == 1
+    std::vector<real> arts;
+#else
+    std::vector<std::vector<real>> arts; // 2-D vector to hold tensor Data (DIM*DIM)
+#endif // DIM == 1
+#endif
 #endif // SPH
 
     Logger(INFO) << "copying particles ...";
 
     particleHandler->copyDistribution(To::host, true, false);
 #if SPH_SIM
-    particleHandler->copySPH(To::host); // TODO: change for SOLIDS? function only used here in particles2file(int step)
+    particleHandler->copySPH(To::host);
 #endif
 
     Logger(INFO) << "getting particle keys ...";
@@ -3564,6 +3577,25 @@ real Miluphpc::particles2file(int step) {
                          particleHandler->h_sigma[i*DIM*DIM+6], particleHandler->h_sigma[i*DIM*DIM+7], particleHandler->h_sigma[i*DIM*DIM+8]});
 #endif // DIM
 #endif // SOLID || NAVIER_STOKES
+
+#if ARTIFICIAL_STRESS
+#if DIM == 1
+        arts.push_back(particleHandler->h_R[i]);
+#elif DIM == 2
+        arts.push_back({particleHandler->h_R[i*DIM*DIM],particleHandler->h_R[i*DIM*DIM+1],
+                         particleHandler->h_R[i*DIM*DIM+2], particleHandler->h_R[i*DIM*DIM+3] });
+        //printf("sigma[%i*%i*%i] = %e, sigma[+1] = %e, sigma[+2] = %e, sigma[+3] = %e \n", i, DIM, DIM, particleHandler->h_sigma[i*DIM*DIM],particleHandler->h_sigma[i*DIM*DIM+1], particleHandler->h_sigma[i*DIM*DIM+2], particleHandler->h_sigma[i*DIM*DIM+3] ); // TODO: delete this
+#else
+        arts.push_back({particleHandler->h_R[i*DIM*DIM],particleHandler->h_R[i*DIM*DIM+1],particleHandler->h_R[i*DIM*DIM+2],
+                         particleHandler->h_R[i*DIM*DIM+3], particleHandler->h_R[i*DIM*DIM+4], particleHandler->h_R[i*DIM*DIM+5],
+                         particleHandler->h_R[i*DIM*DIM+6], particleHandler->h_R[i*DIM*DIM+7], particleHandler->h_R[i*DIM*DIM+8]});
+        if(i%400 == 0) {
+            printf("R[%i*%i*%i] = %e, sigma[+1] = %e, sigma[+2] = %e, sigma[+3] = %e \n", i, DIM, DIM,
+                   particleHandler->h_R[i * DIM * DIM], particleHandler->h_R[i * DIM * DIM + 1],
+                   particleHandler->h_R[i * DIM * DIM + 2], particleHandler->h_R[i * DIM * DIM + 3]);
+        }
+#endif // DIM
+#endif // ARTIFICIAL_STRESS
 #endif // SPH_SIM
     }
 
@@ -3634,6 +3666,9 @@ real Miluphpc::particles2file(int step) {
 #endif //SOLID
 #if SOLID || NAVIER_STOKES
     h5_sigma.select({nOffset, 0}, {std::size_t(numParticlesLocal), std::size_t(DIM*DIM)}).write(sigma);
+#endif
+#if ARTIFICIAL_STRESS
+    h5_artificial_stress.select({nOffset, 0}, {std::size_t(numParticlesLocal), std::size_t(DIM*DIM)}).write(arts);
 #endif
 #endif // SPH_SIM
 

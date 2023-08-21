@@ -10,18 +10,23 @@ CUDA_CALLABLE_MEMBER Material::~Material() {
 }
 
 CUDA_CALLABLE_MEMBER void Material::info() {
-    printf("Material: ID                      = %i\n", ID);
-    printf("Material: interactions            = %i\n", interactions);
-    printf("Material: alpha                   = %f\n", artificialViscosity.alpha);
-    printf("Material: beta                    = %f\n", artificialViscosity.beta);
-    printf("Material: eos: type               = %i\n", eos.type);
-    printf("Material: eos: polytropic_K       = %f\n", eos.polytropic_K);
-    printf("Material: eos: polytropic_gamma   = %f\n", eos.polytropic_gamma);
-    printf("Material: eos: rho0               = %f\n", eos.rho_0);
-    printf("Material: eos: bulk_modulus       = %f\n", eos.bulk_modulus);
-    printf("Material: eos: n                  = %f\n", eos.n);
-    printf("Material: eos: shear_modulus      = %f\n", eos.shear_modulus);
-    printf("Material: eos: young_modulus      = %f\n", eos.young_modulus);
+    printf("Material: ID                                        = %i\n", ID);
+    printf("Material: interactions                              = %i\n", interactions);
+    printf("Material: alpha                                     = %f\n", artificialViscosity.alpha);
+    printf("Material: beta                                      = %f\n", artificialViscosity.beta);
+    printf("Material: eos: type                                 = %i\n", eos.type);
+    printf("Material: eos: polytropic_K                         = %f\n", eos.polytropic_K);
+    printf("Material: eos: polytropic_gamma                     = %f\n", eos.polytropic_gamma);
+    printf("Material: eos: rho0                                 = %f\n", eos.rho_0);
+    printf("Material: eos: bulk_modulus                         = %f\n", eos.bulk_modulus);
+    printf("Material: eos: n                                    = %f\n", eos.n);
+    printf("Material: eos: shear_modulus                        = %f\n", eos.shear_modulus);
+    printf("Material: eos: young_modulus                        = %f\n", eos.young_modulus);
+#if ARTIFICIAL_STRESS
+    printf("Material: artificial Stress: exponent tensor        = %f\n", artificialStress.exponent_tensor);
+    printf("Material: artificial Stress: epsilon                = %f\n", artificialStress.epsilon_stress);
+    printf("Material: artificial Stress: mean particle distance = %f\n", artificialStress.mean_particle_distance);
+#endif
     // TODO: add other parameters
 }
 

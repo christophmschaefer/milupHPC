@@ -599,6 +599,18 @@ __global__ void SPH::Kernel::internalForces(::SPH::SPH_kernel kernel, Material *
 #endif // DIM > 1
 #pragma unroll
         for (d = 0; d < DIM; d++) {
+//            // like elastics paper
+//            dSxx += S_i[0][d] * rdot[0][d] + rdot[0][d] * S_i[d][0];
+//#if DIM > 1
+//            dSxy += S_i[0][d] * rdot[1][d] + rdot[0][d] * S_i[d][1];
+//#if DIM == 3
+//            dSyy += S_i[1][d] * rdot[1][d] + rdot[1][d] * S_i[d][1];
+//            dSxz += S_i[0][d] * rdot[2][d] + rdot[0][d] * S_i[d][2];
+//            dSyz += S_i[1][d] * rdot[2][d] + rdot[1][d] * S_i[d][2];
+//#endif // DIM > 1
+//#endif // DIM  == 3
+
+            // like milupcuda paper
             dSxx += S_i[0][d] * rdot[d][0] - rdot[0][d] * S_i[d][0];
 #if DIM > 1
             dSxy += S_i[0][d] * rdot[d][1] - rdot[0][d] * S_i[d][1];
@@ -608,8 +620,8 @@ __global__ void SPH::Kernel::internalForces(::SPH::SPH_kernel kernel, Material *
             dSyz += S_i[1][d] * rdot[d][2] - rdot[1][d] * S_i[d][2];
 #endif // DIM > 1
 #endif // DIM  == 3
-        }
 
+        }
 
 // remember dSdt
         particles->dSdtxx[i] = dSxx;

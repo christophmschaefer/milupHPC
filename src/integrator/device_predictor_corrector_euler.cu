@@ -184,11 +184,12 @@ namespace PredictorCorrectorEulerNS {
 // TODO: some SPH flag?
 #if INTEGRATE_DENSITY
                 particles->rho[i] = particles->rho[i] + dt/2 * (predictor->drhodt[i] + particles->drhodt[i]);
+//                if (i == 1) { //(i % 1000 == 0) {
+//                    printf("CORRECTOR: rho[%i] = %e + %e/2 * (%e + %e)\n", i, particles->rho[i], dt, predictor->drhodt[i],
+//                           particles->drhodt[i]);
+//                }
                 particles->drhodt[i] = 0.5 * (predictor->drhodt[i] + particles->drhodt[i]);
-                //if (i == 12) { //(i % 1000 == 0) {
-                //    printf("corrector: rho[%i] = %e + %e/2 * (%e + %e)\n", i, particles->rho[i], dt, predictor->drhodt[i],
-                //           particles->drhodt[i]);
-                //}
+
 #else
                 //p.rho[i] = p.rho[i];
 #endif
@@ -216,10 +217,11 @@ namespace PredictorCorrectorEulerNS {
 #endif
 #if SOLID
                 particles->Sxx[i] = particles->Sxx[i] + dt/2* (predictor->dSdtxx[i] + particles->dSdtxx[i]);
-                particles->dSdtxx[i] = 0.5 * (particles->dSdtxx[i] + predictor->dSdtxx[i]);
 //                if(i == 1){
-//                    printf("CORRECTOR: Sxx: %e, dSxx: %e, dSxxpred: %e, Sxxpred: %e /n",particles->Sxx[i],particles->dSdtxx[i], predictor->dSdtxx[i], predictor->Sxx[i] );
+//                   printf("CORRECTOR: Sxx: %e, dSxx: %e, dSxxpred: %e, Sxxpred: %e, dt: %e \n",particles->Sxx[i],particles->dSdtxx[i], predictor->dSdtxx[i], predictor->Sxx[i], dt );
 //                }
+                particles->dSdtxx[i] = 0.5 * (particles->dSdtxx[i] + predictor->dSdtxx[i]);
+
 #if DIM > 1
                 particles->Sxy[i] = particles->Sxy[i] + dt/2 * (predictor->dSdtxy[i] + particles->dSdtxy[i]);
                 particles->dSdtxy[i] = 0.5 * (particles->dSdtxy[i] + predictor->dSdtxy[i]);
@@ -232,18 +234,31 @@ namespace PredictorCorrectorEulerNS {
                 particles->dSdtyz[i] = 0.5 * (particles->dSdtyz[i] + predictor->dSdtyz[i]);
 #endif // DIM == 3
 #endif // DIM > 1
-                particles->localStrain[i] = 0.5 * (particles->localStrain[i] + predictor->localStrain[i]);
+//                particles->localStrain[i] = 0.5 * (particles->localStrain[i] + predictor->localStrain[i]);
 #endif // SOLID
-#if SOLID || NAVIER_STOKES
+#if ARTIFICIAL_STRESS
+//               particles->R[i]  = predictor->R[i];
+//                if(i%400 == 0){
+//                    printf("CORRECTOR: i: %i, R_pred: %e , R_cor : %e \n", i , predictor->R[i], particles->R[i]);
+//                }
                 #pragma unroll
                 for (d = 0; d < DIM; d++) {
                     #pragma unroll
                     for (e = 0; e < DIM; e++) {
-                        particles->sigma[CudaUtils::stressIndex(i,d,e)] =
-                                0.5 * ( particles->sigma[CudaUtils::stressIndex(i,d,e)] + predictor->sigma[CudaUtils::stressIndex(i,d,e)] ); // TODO: is this correct?
+                        particles->R[CudaUtils::stressIndex(i,d,e)] =  predictor->R[CudaUtils::stressIndex(i,d,e)] ;
                     }
                 }
-#endif // SOLID || NAVIER_STOKES
+#endif
+//#if SOLID
+//                #pragma unroll
+//                for (d = 0; d < DIM; d++) {
+//                    #pragma unroll
+//                    for (e = 0; e < DIM; e++) {
+//                        particles->sigma[CudaUtils::stressIndex(i,d,e)] =
+//                                0.5 * ( particles->sigma[CudaUtils::stressIndex(i,d,e)] + predictor->sigma[CudaUtils::stressIndex(i,d,e)] ); // TODO: is this correct?
+//                    }
+//                }
+//#endif // SOLID
 
 
                 //if (i % 1000 == 0) {
@@ -257,6 +272,7 @@ namespace PredictorCorrectorEulerNS {
         __global__ void predictor(Particles *particles, IntegratedParticles *predictor, real dt, int numParticles) {
 
             int i;
+            int d, e;
 
             for (i = threadIdx.x + blockIdx.x * blockDim.x; i < numParticles; i+= blockDim.x * gridDim.x) {
 
@@ -274,11 +290,13 @@ namespace PredictorCorrectorEulerNS {
 // TODO: some SPH flag?
 #if INTEGRATE_DENSITY
                 predictor->rho[i] = particles->rho[i] + dt * particles->drhodt[i];
+//                if(i == 1){
+//                    printf("PREDICTOR: rho: %e, drho: %e, rhopred: %e ,dt: %e \n",particles->rho[i],particles->drhodt[i], predictor->rho[i], dt );
+//                }
                 //predictor->drhodt[i] = particles->drhodt[i];
 #else
                 //predictor->rho[i] = particles->rho[i];
 #endif
-//TODO: add other quantities --> solids
 #if INTEGRATE_ENERGY
                 predictor->e[i] = particles->e[i] + dt * particles->dedt[i];
                 // TODO: in principle there should not be a energy floor (but needed for sedov)
@@ -297,8 +315,8 @@ namespace PredictorCorrectorEulerNS {
 #endif
 #if SOLID
                 predictor->Sxx[i] = particles->Sxx[i] + dt * particles->dSdtxx[i];
-//                if(i == 1){
-//                    printf("PREDICTOR: Sxx: %e, dSxx: %e, dSxxpred: %e, Sxxpred: %e /n",particles->Sxx[i],particles->dSdtxx[i], predictor->dSdtxx[i], predictor->Sxx[i] );
+//               if(i == 1){
+//                   printf("PREDICTOR: Sxx: %e, dSxx: %e, Sxxpred: %e, dt: %e \n",particles->Sxx[i],particles->dSdtxx[i], predictor->Sxx[i], dt );
 //                }
 #if DIM > 1
                 predictor->Sxy[i] = particles->Sxy[i] + dt * particles->dSdtxy[i];
@@ -309,10 +327,18 @@ namespace PredictorCorrectorEulerNS {
 #endif // DIM == 3
 #endif // DIM > 1
 #endif //SOLID
+#if ARTIFICIAL_STRESS
+#pragma unroll
+                for (d = 0; d < DIM; d++) {
+#pragma unroll
+                    for (e = 0; e < DIM; e++) {
+                        predictor->R[CudaUtils::stressIndex(i,d,e)] =  1.0;
+                    }
+                }
+#endif
                 predictor->cs[i] = particles->cs[i];
                 // TODO: why is this needed?
                 predictor->p[i] = particles->p[i];
-                // TODO: maybe add sigma?
                 //predictor->ax[i] = particles->ax[i];
                 //predictor->ay[i] = particles->ay[i];
                 //predictor->az[i] = particles->az[i];
@@ -471,7 +497,7 @@ namespace PredictorCorrectorEulerNS {
 #if INTEGRATE_DENSITY
                 if (particles->drhodt[i] != 0) {
                     //TODO: define rhomin_d
-                    double rhomin_d = 0.01;
+                    double rhomin_d = 0.001;
                     temp = SAFETY_FIRST * (cuda::math::abs(particles->rho[i])+rhomin_d)/cuda::math::abs(particles->drhodt[i]);
                     dtrho = cuda::math::min(temp, dtrho);
                 }

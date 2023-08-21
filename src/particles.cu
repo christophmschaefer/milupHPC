@@ -846,8 +846,7 @@ namespace ParticlesNS {
             cuda::launch(false, executionPolicy, ::ParticlesNS::Kernel::setSolid, particles, Sxx, dSdtxx, localStrain);
         }
 
-#endif // DIM == 1
-#if DIM == 2
+#elif DIM == 2
 
         __global__ void setSolid(Particles *particles, real *Sxx, real *Sxy, real *dSdtxx, real *dSdtxy, real *localStrain){
              particles->setSolid(Sxx, Sxy, dSdtxx, dSdtxy, localStrain);
@@ -859,8 +858,7 @@ namespace ParticlesNS {
             }
         }
 
-#endif // DIM == 2
-#if DIM == 3
+#else // DIM == 3
 
         __global__ void setSolid(Particles *particles, real *Sxx, real *Sxy, real *Syy, real *Sxz, real *Syz, real *dSdtxx, real *dSdtxy, real *dSdtyy, real *dSdtxz, real *dSdtyz, real *localStrain) {
             particles->setSolid(Sxx, Sxy, Syy, Sxz, Syz, dSdtxx, dSdtxy, dSdtyy, dSdtxz,dSdtyz, localStrain);
@@ -870,7 +868,7 @@ namespace ParticlesNS {
             ExecutionPolicy executionPolicy(1, 1);
             cuda::launch(false, executionPolicy, ::ParticlesNS::Kernel::setSolid, particles, Sxx, Sxy, Syy, Sxz, Syz, dSdtxx, dSdtxy, dSdtyy, dSdtxz, dSdtyz, localStrain);
         }
-#endif // DIM == 3
+#endif // DIM
 #endif // SOLID
 
 #if SOLID || NAVIER_STOKES
@@ -1143,6 +1141,11 @@ CUDA_CALLABLE_MEMBER void IntegratedParticles::setSolid(real *Sxx, real *Sxy, re
     this->sigma = sigma;
 }
 #endif
+#if ARTIFICIAL_STRESS
+    CUDA_CALLABLE_MEMBER void IntegratedParticles::setArtificialStress(real *R) {
+    this->R = R;
+}
+#endif
 
 CUDA_CALLABLE_MEMBER void IntegratedParticles::reset(integer index) {
 
@@ -1354,6 +1357,16 @@ namespace IntegratedParticlesNS {
                 cuda::launch(false, executionPolicy, ::IntegratedParticlesNS::Kernel::setSolidNavierStokes,
                              integratedParticles, sigma);
             }
+        }
+#endif
+#if ARTIFICIAL_STRESS
+        __global__ void setArtificialStress(IntegratedParticles *integratedParticles, real *R) {
+            integratedParticles->setArtificialStress(R);
+        }
+        void Launch::setArtificialStress(IntegratedParticles *integratedParticles, real *R) {
+            ExecutionPolicy executionPolicy(1, 1);
+            cuda::launch(false, executionPolicy, ::IntegratedParticlesNS::Kernel::setArtificialStress,
+                         integratedParticles, R);
         }
 #endif
     }
