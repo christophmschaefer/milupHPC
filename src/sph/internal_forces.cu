@@ -42,6 +42,7 @@ __global__ void SPH::Kernel::internalForces(::SPH::SPH_kernel kernel, Material *
 
 #if ARTIFICIAL_STRESS
     real artf = 0;
+    real arts_rij = 0;
 #endif
 
     int d;
@@ -135,7 +136,9 @@ __global__ void SPH::Kernel::internalForces(::SPH::SPH_kernel kernel, Material *
 #endif
 
 #if SOLID
+        #pragma unroll
         for (d = 0; d < DIM; d++) {
+            #pragma unroll
             for (e = 0; e < DIM; e++) {
                 // set rotation rate and strain rate tensor to zero
                 edot[d][e] = 0.0;
@@ -336,7 +339,7 @@ __global__ void SPH::Kernel::internalForces(::SPH::SPH_kernel kernel, Material *
             // calculate edot and rdot
             // edot_ab = 0.5 * (d_b v_a + d_a v_b)
             // rdot_ab = 0.5 * (d_b v_a - d_a v_b)
-            tmp = -0.5*particles->mass[j]/particles->rho[j];
+            tmp = -0.5*particles->mass[j]/particles->rho[j]; // why minus sign? because of dvx = vxi - vxj
             edot[0][0] += tmp*(dvx*dWdx[0] + dvx*dWdx[0]);
 #if DIM > 1
             edot[0][1] += tmp*(dvx*dWdx[1] + dvy*dWdx[0]);
@@ -436,9 +439,17 @@ __global__ void SPH::Kernel::internalForces(::SPH::SPH_kernel kernel, Material *
 #endif // NAVIER_STOKES
 
 #if SOLID
+#if ARTIFICIAL_STRESS
+            real meanParticleDistance = materials[matId].artificialStress.mean_particle_distance;
+            real exponentTensor = materials[matId].artificialStress.exponent_tensor;
+            artf = SPH::fixTensileInstability(kernel, particles, i, j, meanParticleDistance );
+            artf = cuda::math::pow(artf, exponentTensor);
+#endif
             // calculate acceleration for Solids
+#pragma unroll
             for (d = 0; d < DIM; d++) {
                 accelsj[d] = 0;
+#pragma unroll
                 for(dd = 0; dd < DIM; dd++){
 #if( SPH_EQU_VERSION == 1)
                     accelsj[d] = particles->mass[j] *(sigma_i[d][dd]/(particles->rho[i]*particles->rho[i]) + sigma_j[d][dd]/(particles->rho[j]*particles->rho[j]))*dWdx[dd];
@@ -447,6 +458,15 @@ __global__ void SPH::Kernel::internalForces(::SPH::SPH_kernel kernel, Material *
 #else
 #error Invalid choice of SPH_EQU_VERSION in parameter.h
 #endif // SPH_EQU_VERSION
+#if ARTIFICIAL_STRESS
+#if SPH_EQU_VERSION == 1
+                    arts_rij = particles->R[CudaUtils::stressIndex(i, d, dd)] / (particles->rho[i]*particles->rho[i])
+                    + particles->R[CudaUtils::stressIndex(j, d, dd)] / (particles->rho[j]*particles->rho[j]);
+#elif SPH_EQU_VERSION == 2
+                    arts_rij = ( particles->R[CudaUtils::stressIndex(i, d, dd)] + particles->R[CudaUtils::stressIndex(j, d, dd)] ) / (particles->rho[i]*particles->rho[j]);
+#endif
+                    accels[d] += particles->mass[j] * arts_rij * artf * dWdx[dd];
+#endif // ARTIFICIAL_STRESS
                     accels[d] += accelsj[d];
                 }
             }

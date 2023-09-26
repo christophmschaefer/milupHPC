@@ -231,6 +231,15 @@ namespace cuda {
          * @return Inverse square root of a floating point value
          */
         __device__ real rsqrt(real a);
+
+        /**
+         * @brief Calculate the value of the first argument to the power of the second
+         *
+         * @param a
+         * @param b
+         * @return The value of the first argument to the power of the second
+         */
+        __device__ real pow(real a, real b);
     }
 }
 

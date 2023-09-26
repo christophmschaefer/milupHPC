@@ -468,5 +468,13 @@ namespace cuda {
             return ::rsqrt(a);
 #endif
         }
+
+        __device__ real pow(real a, real b){
+#if SINGLE_PRECISION
+            return powf(a, b);
+#else
+            return pow(a, b);
+#endif
+        }
     }
 }

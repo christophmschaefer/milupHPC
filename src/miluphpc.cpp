@@ -2872,10 +2872,13 @@ real Miluphpc::parallel_sph() {
     profiler.value2file(ProfilerIds::Time::SPH::resend, time);
 
     totalTime += time;
-    // TODO: and calc of artificial Stress
 #if SOLID
     Logger(DEBUG) << "Stress";
     time = SPH::Kernel::Launch::calculateStress(particleHandler->d_particles, numParticlesLocal);
+#endif
+#if ARTIFICIAL_STRESS
+    Logger(DEBUG) << "Artificial Stress";
+    time = SPH::Kernel::Launch::calculateArtificialStress(materialHandler->d_materials, particleHandler->d_particles, numParticlesLocal);
 #endif
 
     Logger(DEBUG) << "internal forces";
@@ -3589,11 +3592,11 @@ real Miluphpc::particles2file(int step) {
         arts.push_back({particleHandler->h_R[i*DIM*DIM],particleHandler->h_R[i*DIM*DIM+1],particleHandler->h_R[i*DIM*DIM+2],
                          particleHandler->h_R[i*DIM*DIM+3], particleHandler->h_R[i*DIM*DIM+4], particleHandler->h_R[i*DIM*DIM+5],
                          particleHandler->h_R[i*DIM*DIM+6], particleHandler->h_R[i*DIM*DIM+7], particleHandler->h_R[i*DIM*DIM+8]});
-        if(i%400 == 0) {
-            printf("R[%i*%i*%i] = %e, sigma[+1] = %e, sigma[+2] = %e, sigma[+3] = %e \n", i, DIM, DIM,
-                   particleHandler->h_R[i * DIM * DIM], particleHandler->h_R[i * DIM * DIM + 1],
-                   particleHandler->h_R[i * DIM * DIM + 2], particleHandler->h_R[i * DIM * DIM + 3]);
-        }
+//        if(i%400 == 0) {
+//            printf("R[%i*%i*%i] = %e, sigma[+1] = %e, sigma[+2] = %e, sigma[+3] = %e \n", i, DIM, DIM,
+//                   particleHandler->h_R[i * DIM * DIM], particleHandler->h_R[i * DIM * DIM + 1],
+//                   particleHandler->h_R[i * DIM * DIM + 2], particleHandler->h_R[i * DIM * DIM + 3]);
+//        }
 #endif // DIM
 #endif // ARTIFICIAL_STRESS
 #endif // SPH_SIM

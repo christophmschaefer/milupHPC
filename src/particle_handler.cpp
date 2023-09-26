@@ -109,7 +109,7 @@ ParticleHandler::ParticleHandler(integer numParticles, integer numNodes) : numPa
     h_sigma = _h_sigma;
 #endif
 #if ARTIFICIAL_STRESS
-    _h_R = new real[DIM * DIM * numParticles]{1,2,3};
+    _h_R = new real[DIM * DIM * numParticles]{};
     h_R = _h_R;
 #endif
 #if POROSITY

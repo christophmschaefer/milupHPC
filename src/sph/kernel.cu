@@ -183,7 +183,7 @@ namespace SPH {
     }
 
 
-    CUDA_CALLABLE_MEMBER real fixTensileInstability(SPH_kernel kernel, Particles *particles, int p1, int p2) {
+    __device__ real fixTensileInstability(SPH_kernel kernel, Particles *particles, int p1, int p2, real meanParticleDistance) {
 
         real hbar;
         real dx[DIM];
@@ -210,13 +210,12 @@ namespace SPH {
         hbar = 0.5 * (particles->sml[p1] + particles->sml[p2]);
         // calculate kernel for r and particle_distance
         kernel(&W, dWdx, &dWdr, dx, hbar);
-        //TODO: matmean_particle_distance
-        //dx[0] = matmean_particle_distance[p_rhs.materialId[a]];
+        dx[0] = meanParticleDistance;
         for (int d = 1; d < DIM; d++) {
             dx[d] = 0;
         }
         kernel(&W2, dWdx, &dWdr, dx, hbar);
-
+        //printf("++++++++++++++ %.17lf\n", W/W2);
         return W/W2;
 
     }
@@ -511,5 +510,6 @@ __global__ void tensorialCorrection(SPH_kernel kernel, Particles *particles, int
     }
 }
 #endif
+
 }
 

@@ -236,31 +236,15 @@ namespace PredictorCorrectorEulerNS {
 #endif // DIM > 1
 //                particles->localStrain[i] = 0.5 * (particles->localStrain[i] + predictor->localStrain[i]);
 #endif // SOLID
-#if ARTIFICIAL_STRESS
-//               particles->R[i]  = predictor->R[i];
-//                if(i%400 == 0){
-//                    printf("CORRECTOR: i: %i, R_pred: %e , R_cor : %e \n", i , predictor->R[i], particles->R[i]);
-//                }
-                #pragma unroll
-                for (d = 0; d < DIM; d++) {
-                    #pragma unroll
-                    for (e = 0; e < DIM; e++) {
-                        particles->R[CudaUtils::stressIndex(i,d,e)] =  predictor->R[CudaUtils::stressIndex(i,d,e)] ;
-                    }
-                }
-#endif
-//#if SOLID
+//#if ARTIFICIAL_STRESS
 //                #pragma unroll
 //                for (d = 0; d < DIM; d++) {
 //                    #pragma unroll
 //                    for (e = 0; e < DIM; e++) {
-//                        particles->sigma[CudaUtils::stressIndex(i,d,e)] =
-//                                0.5 * ( particles->sigma[CudaUtils::stressIndex(i,d,e)] + predictor->sigma[CudaUtils::stressIndex(i,d,e)] ); // TODO: is this correct?
+//                        particles->R[CudaUtils::stressIndex(i,d,e)] =  predictor->R[CudaUtils::stressIndex(i,d,e)] ;
 //                    }
 //                }
-//#endif // SOLID
-
-
+//#endif
                 //if (i % 1000 == 0) {
                 //    printf("i: %i, particles->cs = %e, predictor->cs = %e\n", i, particles->cs[i], predictor->cs[i]);
                 //}
@@ -327,15 +311,15 @@ namespace PredictorCorrectorEulerNS {
 #endif // DIM == 3
 #endif // DIM > 1
 #endif //SOLID
-#if ARTIFICIAL_STRESS
-#pragma unroll
-                for (d = 0; d < DIM; d++) {
-#pragma unroll
-                    for (e = 0; e < DIM; e++) {
-                        predictor->R[CudaUtils::stressIndex(i,d,e)] =  1.0;
-                    }
-                }
-#endif
+//#if ARTIFICIAL_STRESS
+//#pragma unroll
+//                for (d = 0; d < DIM; d++) {
+//#pragma unroll
+//                    for (e = 0; e < DIM; e++) {
+//                        predictor->R[CudaUtils::stressIndex(i,d,e)] =  1.0;
+//                    }
+//                }
+//#endif
                 predictor->cs[i] = particles->cs[i];
                 // TODO: why is this needed?
                 predictor->p[i] = particles->p[i];

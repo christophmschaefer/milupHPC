@@ -187,9 +187,10 @@ namespace SPH {
      * @param particles
      * @param p1
      * @param p2
+     * @param meanParticleDistance
      * @return
      */
-    CUDA_CALLABLE_MEMBER real fixTensileInstability(SPH_kernel kernel, Particles *particles, int p1, int p2);
+    __device__ real fixTensileInstability(SPH_kernel kernel, Particles *particles, int p1, int p2, real meanParticleDistance);
 
 #if (NAVIER_STOKES || BALSARA_SWITCH || INVISCID_SPH || INTEGRATE_ENERGY)
 

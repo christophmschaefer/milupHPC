@@ -68,8 +68,8 @@
 
             } // particle loop
         }
-real SPH::Kernel::Launch::calculateStress(Particles *particles, int NumParticles) {
+real SPH::Kernel::Launch::calculateStress(Particles *particles, int numParticles) {
     ExecutionPolicy executionPolicy;
-    return cuda::launch(true, executionPolicy, ::SPH::Kernel::calculateStress, particles, NumParticles);
+    return cuda::launch(true, executionPolicy, ::SPH::Kernel::calculateStress, particles, numParticles);
 }
 #endif // SOLID

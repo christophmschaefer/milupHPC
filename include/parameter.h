@@ -35,7 +35,7 @@ typedef int idInteger;
 #define SAFETY_LEVEL 3
 
 /// Dimension of the problem
-#define DIM 3
+#define DIM 2
 #define power_two(x) (1 << (x))
 #define POW_DIM power_two(DIM)
 
