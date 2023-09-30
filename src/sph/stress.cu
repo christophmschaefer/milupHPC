@@ -7,9 +7,9 @@
             real p;
             real Sxx;
 #if DIM > 1
-            real Sxy;
+            real Sxy, Syy;
 #if DIM == 3
-            real Syy, Sxz, Syz;
+            real Sxz, Syz;
 #endif
 #endif
             real sigma[DIM][DIM];
@@ -23,8 +23,8 @@
                 Sxx = particles->Sxx[i];
 #if DIM > 1
                 Sxy = particles->Sxy[i];
-#if DIM == 3
                 Syy = particles->Syy[i];
+#if DIM == 3
                 Sxz = particles->Sxz[i],
                 Syz = particles->Syz[i];
 #endif
@@ -35,10 +35,9 @@
 #if DIM == 1
                 sigma[0] = Sxx;
 #elif DIM == 2
-                //sigma = {Sxx, Sxy, Sxy, -Sxx};
                 sigma[0][0] = Sxx;
                 sigma[1][0] = sigma[0][1] = Sxy;
-                sigma[1][1] = -Sxx;
+                sigma[1][1] = Syy;
 #else
                 sigma[0][0] = Sxx;
                 sigma[1][0] = sigma[0][1] = Sxy;

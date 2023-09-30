@@ -128,7 +128,6 @@ namespace PredictorCorrectorEulerNS {
     namespace Kernel {
 
         __global__ void corrector(Particles *particles, IntegratedParticles *predictor, real dt, int numParticles) {
-
             int i;
             int d;
             int e;
@@ -155,7 +154,8 @@ namespace PredictorCorrectorEulerNS {
 #endif
 */
 // end: just for debugging purposes!!!
-
+                if( i == 1){
+                    printf("particle loop");}
                 particles->x[i] = particles->x[i] + dt/2 * (predictor->vx[i] + particles->vx[i]);
                 //if (i == 12) { //(i % 1000 == 0) {
                 //    printf("corrector: x[%i] = %e + %e/2 * (%e + %e)\n", i, particles->x[i], dt, predictor->vx[i],
@@ -223,28 +223,22 @@ namespace PredictorCorrectorEulerNS {
                 particles->dSdtxx[i] = 0.5 * (particles->dSdtxx[i] + predictor->dSdtxx[i]);
 
 #if DIM > 1
+                if( i == 1){
+                    printf("Sxy");}
                 particles->Sxy[i] = particles->Sxy[i] + dt/2 * (predictor->dSdtxy[i] + particles->dSdtxy[i]);
                 particles->dSdtxy[i] = 0.5 * (particles->dSdtxy[i] + predictor->dSdtxy[i]);
-#if DIM == 3
+
                 particles->Syy[i] = particles->Syy[i] + dt/2 * (predictor->dSdtyy[i] + particles->dSdtyy[i]);
                 particles->dSdtyy[i] = 0.5 * (particles->dSdtyy[i] + predictor->dSdtyy[i]);
+#if DIM == 3
                 particles->Sxz[i] = particles->Sxz[i] + dt/2 * (predictor->dSdtxz[i] + particles->dSdtxz[i]);
                 particles->dSdtxz[i] = 0.5 * (particles->dSdtxz[i] + predictor->dSdtxz[i]);
                 particles->Syz[i] = particles->Syz[i] + dt/2 * (predictor->dSdtyz[i] + particles->dSdtyz[i]);
                 particles->dSdtyz[i] = 0.5 * (particles->dSdtyz[i] + predictor->dSdtyz[i]);
 #endif // DIM == 3
 #endif // DIM > 1
-//                particles->localStrain[i] = 0.5 * (particles->localStrain[i] + predictor->localStrain[i]);
 #endif // SOLID
-//#if ARTIFICIAL_STRESS
-//                #pragma unroll
-//                for (d = 0; d < DIM; d++) {
-//                    #pragma unroll
-//                    for (e = 0; e < DIM; e++) {
-//                        particles->R[CudaUtils::stressIndex(i,d,e)] =  predictor->R[CudaUtils::stressIndex(i,d,e)] ;
-//                    }
-//                }
-//#endif
+
                 //if (i % 1000 == 0) {
                 //    printf("i: %i, particles->cs = %e, predictor->cs = %e\n", i, particles->cs[i], predictor->cs[i]);
                 //}
@@ -304,22 +298,14 @@ namespace PredictorCorrectorEulerNS {
 //                }
 #if DIM > 1
                 predictor->Sxy[i] = particles->Sxy[i] + dt * particles->dSdtxy[i];
-#if DIM == 3
                 predictor->Syy[i] = particles->Syy[i] + dt * particles->dSdtyy[i];
+#if DIM == 3
                 predictor->Sxz[i] = particles->Sxz[i] + dt * particles->dSdtxz[i];
                 predictor->Syz[i] = particles->Syz[i] + dt * particles->dSdtyz[i];
 #endif // DIM == 3
 #endif // DIM > 1
 #endif //SOLID
-//#if ARTIFICIAL_STRESS
-//#pragma unroll
-//                for (d = 0; d < DIM; d++) {
-//#pragma unroll
-//                    for (e = 0; e < DIM; e++) {
-//                        predictor->R[CudaUtils::stressIndex(i,d,e)] =  1.0;
-//                    }
-//                }
-//#endif
+
                 predictor->cs[i] = particles->cs[i];
                 // TODO: why is this needed?
                 predictor->p[i] = particles->p[i];
@@ -459,7 +445,7 @@ namespace PredictorCorrectorEulerNS {
                 courant = cuda::math::min(courant, temp);
 
                 temp = COURANT_FACT * sml / (particles->cs[i] + 1.2 * (materials[matId].artificialViscosity.alpha * particles->cs[i] +
-                            materials[matId].artificialViscosity.beta * particles->muijmax[i])); //TODO: check brackets
+                            materials[matId].artificialViscosity.beta * particles->muijmax[i]));
                 dtartvisc = min(dtartvisc, temp);
 
 #if DIM == 1

@@ -6,10 +6,13 @@ import h5py
 """
 this program creates two 2-D rings (z = 0) around the origin which are then shifted to their final positions
 used for colliding rings testcase, see Gray, Monaghan, Swift SPH elastic dynamics, journal of Computer methods
-in applied mechanics and engineering
+in applied mechanics and engineering (2001)
 """
 # Dim of Rings
 dim = 2
+
+# Fill up with zeros to 3D
+fillUp = False
 
 # ring properties: inner and outer radius
 r_inner = 3.0
@@ -44,7 +47,7 @@ a = np.mgrid[0:N_length, 0:N_length]
 for i in range(dim):
     k = 0
     for j in range(N_square):
-        if(j % (N_length) == 0 and j > 0):
+        if j % N_length == 0 and j > 0:
             k += 1
             k = k % N_length
         # print(i, k, j)
@@ -55,45 +58,66 @@ for i in range(dim):
 N = 0
 arr = np.zeros(N_square) 
 for i in range(N_square):
-    radius = np.sqrt(r[i,0]**2 + r[i,1]**2)
-    if( radius >= r_inner and radius <= r_outer):
+    radius = np.sqrt(r[i, 0]**2 + r[i, 1]**2)
+    if r_outer >= radius >= r_inner:
         N += 1
         arr[i] = 1
 
 # construct two rings with N particles which then are shifted along the x-axis
-r_ring = np.zeros((N, dim+1)) # first ring
-r_ring2 = np.zeros((N, dim+1)) # second ring
-v = np.zeros((N, dim+1))
-v2 = np.zeros((N, dim+1))
+if fillUp:
+    r_ring = np.zeros((N, dim+1))  # first ring
+    r_ring2 = np.zeros((N, dim+1))  # second ring
+    v = np.zeros((N, dim+1))
+    v2 = np.zeros((N, dim+1))
+else:
+    r_ring = np.zeros((N, dim))  # first ring
+    r_ring2 = np.zeros((N, dim))  # second ring
+    v = np.zeros((N, dim))
+    v2 = np.zeros((N, dim))
 
 m = np.ones(2*N)*mass # 2N because of two rings
 rho = np.ones(2*N)*density
 materialId = np.zeros(2*N, dtype=np.int8)
+#Sxx = np.zeros(2*N)
+#Sxy = np.zeros(2*N)
 
 # create ring 1
 counter = 0
 for i in range(N_square):
     if arr[i] == 1:
-        r_ring[counter, 0] = r[i, 0] - shift
-        r_ring[counter, 1] = r[i, 1]
-        r_ring[counter, 2] = 0
+        r_ring[counter, 0] = r[i, 0] - shift # normal
+        r_ring[counter, 1] = r[i, 1]  # normal
+        if fillUp:
+            r_ring[counter, 2] = 0  # normal
+
+        # r_ring[counter, 0] = r[i, 0] + shift # second quandrant
+        # r_ring[counter, 0] = r[i, 0] - 2.5*shift # first quadrant
+        # r_ring[counter, 1] = r[i, 1] + shift # positive
+
         v[counter, 0] = v_p
         counter += 1
 # create ring 2
 counter = 0
 for i in range(N_square):
     if arr[i] == 1:
-        r_ring2[counter, 0] = r[i, 0] + shift
-        r_ring2[counter, 1] = r[i, 1]
-        r_ring2[counter, 2] = 0
+        r_ring2[counter, 0] = r[i, 0] + shift  # normal
+        r_ring2[counter, 1] = r[i, 1]  # normal
+        if fillUp:
+            r_ring2[counter, 2] = 0 # for 3D
+        # r_ring2[counter, 0] = r[i, 0] + 2.5*shift # second quadrant
+        # r_ring2[counter, 0] = r[i, 0] - shift #first quadrant
+        # r_ring2[counter, 1] = r[i, 1] + shift #positive
+
         v2[counter, 0] = -v_p
         counter += 1
 # put two rings in one array
 r_final = np.concatenate((r_ring, r_ring2))
 v_final = np.concatenate((v, v2))
 
-
-h5f = h5py.File("rings3D.h5", "w")
+if fillUp:
+    h5f = h5py.File("rings_2N{}-3D.h5".format(N), "w")
+else:
+    h5f = h5py.File("rings_2N{}-2D.h5".format(N), "w")
 print("Saving to rings.h5 ...")
 
 # write to hdf5 data set
@@ -102,6 +126,8 @@ h5f.create_dataset("v", data=v_final)
 h5f.create_dataset("m", data=m)
 h5f.create_dataset("materialId", data=materialId)
 h5f.create_dataset("rho", data=rho)
+#h5f.create_dataset("Sxx", data=Sxx)
+#h5f.create_dataset("Sxy", data=Sxy)
 
 h5f.close()
 print("Finished")

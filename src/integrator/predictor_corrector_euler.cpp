@@ -138,7 +138,7 @@ void PredictorCorrectorEuler::integrate(int step) {
                                                                      *simulationTimeHandler->h_dt, //(real) simulationParameters.timestep,
                                                                      numParticlesLocal);
 
-
+        Logger(INFO) << "CORRECTOR FINISHED!";
         *simulationTimeHandler->h_currentTime += *simulationTimeHandler->h_dt;
         simulationTimeHandler->copy(To::device);
 

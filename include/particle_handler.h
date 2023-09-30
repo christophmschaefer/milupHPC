@@ -104,9 +104,9 @@ public:
 #if DIM > 1
     /// host xy-entry of the deviatoric stress tensor
     real *h_Sxy, *_h_Sxy;
-#if DIM == 3
     /// host yy-entry of the deviatoric stress tensor
     real *h_Syy, *_h_Syy;
+#if DIM == 3
     /// host xz-entry of the deviatoric stress tensor
     real *h_Sxz, *_h_Sxz;
     /// host yz-entry of the deviatoric stress tensor
@@ -118,9 +118,9 @@ public:
 #if DIM > 1
     /// host xy-entry of the time derivative of the deviatoric stress tensor
     real *h_dSdtxy, *_h_dSdtxy;
-#if DIM == 3
     /// host yy-entry of the time derivative of the deviatoric stress tensor
     real *h_dSdtyy, *_h_dSdtyy;
+#if DIM == 3
     /// host xz-entry oft he time derivative of the deviatoric stress tensor
     real *h_dSdtxz, *_h_dSdtxz;
     /// host yz-entry of the time derivative of the deviatoric stress tensor
@@ -292,9 +292,9 @@ public:
 #if DIM > 1
     /// device xy-entry of the deviatoric stress tensor
     real *d_Sxy, *_d_Sxy;
-#if DIM == 3
     /// device yy-entry of the deviatoric stress tensor
     real *d_Syy, *_d_Syy;
+#if DIM == 3
     /// device xz-entry of the deviatoric stress tensor
     real *d_Sxz, *_d_Sxz;
     /// device yz-entry of the deviatoric stress tensor
@@ -306,9 +306,9 @@ public:
 #if DIM > 1
     /// device xy-entry of the time derivative of the deviatoric stress tensor
     real *d_dSdtxy, *_d_dSdtxy;
-#if DIM == 3
     /// device yy-entry of the time derivative of the deviatoric stress tensor
     real *d_dSdtyy, *_d_dSdtyy;
+#if DIM == 3
     /// device xz-entry oft he time derivative of the deviatoric stress tensor
     real *d_dSdtxz, *_d_dSdtxz;
     /// device yz-entry of the time derivative of the deviatoric stress tensor
@@ -522,8 +522,8 @@ public:
     real *d_Sxx;
 #if DIM > 1
     real *d_Sxy;
-#if DIM == 3
     real *d_Syy;
+#if DIM == 3
     real *d_Sxz;
     real *d_Syz;
 #endif // DIM == 3
@@ -532,8 +532,8 @@ public:
     real *d_dSdtxx;
 #if DIM > 1
     real *d_dSdtxy;
-#if DIM == 3
     real *d_dSdtyy;
+#if DIM == 3
     real *d_dSdtxz;
     real *d_dSdtyz;
 #endif // DIM == 3

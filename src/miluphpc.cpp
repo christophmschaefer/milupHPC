@@ -269,32 +269,28 @@ void Miluphpc::prepareSimulation() {
     //cuda::copy(particleHandler->h_cs, particleHandler->d_cs, numParticles, To::device);
 
 #if SOLID
-    Logger(DEBUG) << "SOLID  Sxx etc...";
     cuda::copy(particleHandler->h_Sxx, particleHandler->d_Sxx, numParticles, To::device);
 #if DIM > 1
     cuda::copy(particleHandler->h_Sxy, particleHandler->d_Sxy, numParticles, To::device);
-#if DIM == 3
     cuda::copy(particleHandler->h_Syy, particleHandler->d_Syy, numParticles, To::device);
+#if DIM == 3
     cuda::copy(particleHandler->h_Sxz, particleHandler->d_Sxz, numParticles, To::device);
     cuda::copy(particleHandler->h_Syz, particleHandler->d_Syz, numParticles, To::device);
 #endif // DIM == 3
 #endif // DIM >1
-    Logger(DEBUG) << "SOLID  dSxxdt etc...";
     cuda::copy(particleHandler->h_dSdtxx, particleHandler->d_dSdtxx, numParticles, To::device);
 #if DIM > 1
     cuda::copy(particleHandler->h_dSdtxy, particleHandler->d_dSdtxy, numParticles, To::device);
-#if DIM == 3
     cuda::copy(particleHandler->h_dSdtyy, particleHandler->d_dSdtyy, numParticles, To::device);
+#if DIM == 3
     cuda::copy(particleHandler->h_dSdtxz, particleHandler->d_dSdtxz, numParticles, To::device);
     cuda::copy(particleHandler->h_dSdtyz, particleHandler->d_dSdtyz, numParticles, To::device);
 #endif // DIM == 3
 #endif // DIM > 1
-    Logger(DEBUG) << "localStrain...";
-    cuda::copy(particleHandler->h_localStrain, particleHandler->d_localStrain, numParticles, To::device); // TODO: What is the problem
+    cuda::copy(particleHandler->h_localStrain, particleHandler->d_localStrain, numParticles, To::device);
 #endif // SOLID
 
 #if SOLID || NAVIER_STOKES
-    Logger(DEBUG) << "sigma...";
     cuda::copy(particleHandler->h_sigma, particleHandler->d_sigma, DIM * DIM * numParticles, To::device);
 #endif // SOLID || NAVIER_STOKES
 #if ARTIFICIAL_STRESS
@@ -2600,7 +2596,7 @@ real Miluphpc::parallel_sph() {
     sendParticles(d_collectedEntries, &particleHandler->d_cs[numParticlesLocal], particleSendLengths,
                   particleReceiveLengths);
 
-    // cs-entry particle exchange - should be internal energy?
+    // internal energy particle exchange
     CudaUtils::Kernel::Launch::collectValues(d_particles2SendIndices, particleHandler->d_e, d_collectedEntries,
                                              particleTotalSendLength);
     sendParticles(d_collectedEntries, &particleHandler->d_e[numParticlesLocal], particleSendLengths,
@@ -3399,8 +3395,8 @@ real Miluphpc::particles2file(int step) {
     HighFive::DataSet h5_Sxx = h5file.createDataSet<real>("/Sxx", HighFive::DataSpace(sumParticles));
 #if DIM > 1
     HighFive::DataSet h5_Sxy = h5file.createDataSet<real>("/Sxy", HighFive::DataSpace(sumParticles));
-#if DIM == 3
     HighFive::DataSet h5_Syy = h5file.createDataSet<real>("/Syy", HighFive::DataSpace(sumParticles));
+#if DIM == 3
     HighFive::DataSet h5_Sxz = h5file.createDataSet<real>("/Sxz", HighFive::DataSpace(sumParticles));
     HighFive::DataSet h5_Syz = h5file.createDataSet<real>("/Syz", HighFive::DataSpace(sumParticles));
 #endif // DIM == 3
@@ -3409,8 +3405,8 @@ real Miluphpc::particles2file(int step) {
     HighFive::DataSet h5_dSdtxx = h5file.createDataSet<real>("/dSdtxx", HighFive::DataSpace(sumParticles));
 #if DIM > 1
     HighFive::DataSet h5_dSdtxy = h5file.createDataSet<real>("/dSdtxy", HighFive::DataSpace(sumParticles));
-#if DIM == 3
     HighFive::DataSet h5_dSdtyy = h5file.createDataSet<real>("/dSdtyy", HighFive::DataSpace(sumParticles));
+#if DIM == 3
     HighFive::DataSet h5_dSdtxz = h5file.createDataSet<real>("/dSdtxz", HighFive::DataSpace(sumParticles));
     HighFive::DataSet h5_dSdtyz = h5file.createDataSet<real>("/dSdtyz", HighFive::DataSpace(sumParticles));
 #endif // DIM == 3
@@ -3420,9 +3416,6 @@ real Miluphpc::particles2file(int step) {
 
 #if SOLID || NAVIER_STOKES
     HighFive::DataSet h5_sigma = h5file.createDataSet<real>("/sigma", HighFive::DataSpace(dataSpaceDimsTensor));
-    /*debug: HighFive::DataSpace spacespace = h5_sigma.getSpace();
-    std::vector<size_t> space = spacespace.getDimensions();
-    std::cout << space[0] <<"  " << space[1] << std::endl;*/ // TODO: delete this
 #endif
 #if ARTIFICIAL_STRESS
     HighFive::DataSet h5_artificial_stress = h5file.createDataSet<real>("/artificialStress", HighFive::DataSpace(dataSpaceDimsTensor));
@@ -3458,8 +3451,8 @@ real Miluphpc::particles2file(int step) {
     std::vector<real> Sxx;
 #if DIM > 1
     std::vector<real> Sxy;
-#if DIM == 3
     std::vector<real> Syy;
+#if DIM == 3
     std::vector<real> Sxz;
     std::vector<real> Syz;
 #endif
@@ -3467,8 +3460,8 @@ real Miluphpc::particles2file(int step) {
     std::vector<real> dSdtxx;
 #if DIM > 1
     std::vector<real> dSdtxy;
-#if DIM == 3
     std::vector<real> dSdtyy;
+#if DIM == 3
     std::vector<real> dSdtxz;
     std::vector<real> dSdtyz;
 #endif
@@ -3549,8 +3542,8 @@ real Miluphpc::particles2file(int step) {
         Sxx.push_back(particleHandler->h_Sxx[i]);
 #if DIM > 1
         Sxy.push_back(particleHandler->h_Sxy[i]);
-#if DIM == 3
         Syy.push_back(particleHandler->h_Syy[i]);
+#if DIM == 3
         Sxz.push_back(particleHandler->h_Sxz[i]);
         Syz.push_back(particleHandler->h_Syz[i]);
 #endif // DIM == 3
@@ -3559,8 +3552,8 @@ real Miluphpc::particles2file(int step) {
         dSdtxx.push_back(particleHandler->h_dSdtxx[i]);
 #if DIM > 1
         dSdtxy.push_back(particleHandler->h_dSdtxy[i]);
-#if DIM == 3
         dSdtyy.push_back(particleHandler->h_dSdtyy[i]);
+#if DIM == 3
         dSdtxz.push_back(particleHandler->h_dSdtxz[i]);
         dSdtyz.push_back(particleHandler->h_dSdtyz[i]);
 #endif // DIM == 3
@@ -3650,8 +3643,8 @@ real Miluphpc::particles2file(int step) {
     h5_Sxx.select({nOffset}, {std::size_t(numParticlesLocal)}).write(Sxx);
 #if DIM > 1
     h5_Sxy.select({nOffset}, {std::size_t(numParticlesLocal)}).write(Sxy);
-#if DIM == 3
     h5_Syy.select({nOffset}, {std::size_t(numParticlesLocal)}).write(Syy);
+#if DIM == 3
     h5_Sxz.select({nOffset}, {std::size_t(numParticlesLocal)}).write(Sxz);
     h5_Syz.select({nOffset}, {std::size_t(numParticlesLocal)}).write(Syz);
 #endif // DIM == 3
@@ -3659,8 +3652,8 @@ real Miluphpc::particles2file(int step) {
     h5_dSdtxx.select({nOffset}, {std::size_t(numParticlesLocal)}).write(dSdtxx);
 #if DIM > 1
     h5_dSdtxy.select({nOffset}, {std::size_t(numParticlesLocal)}).write(dSdtxy);
-#if DIM == 3
     h5_dSdtyy.select({nOffset}, {std::size_t(numParticlesLocal)}).write(dSdtyy);
+#if DIM == 3
     h5_dSdtxz.select({nOffset}, {std::size_t(numParticlesLocal)}).write(dSdtxz);
     h5_dSdtyz.select({nOffset}, {std::size_t(numParticlesLocal)}).write(dSdtyz);
 #endif // DIM == 3

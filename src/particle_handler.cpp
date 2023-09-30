@@ -78,9 +78,9 @@ ParticleHandler::ParticleHandler(integer numParticles, integer numNodes) : numPa
 #if DIM > 1
     _h_Sxy = new real[numParticles]{};
     h_Sxy = _h_Sxy;
-#if DIM == 3
     _h_Syy = new real[numParticles]{};
     h_Syy = _h_Syy;
+#if DIM == 3
     _h_Sxz = new real[numParticles]{};
     h_Sxz = _h_Sxz;
     _h_Syz = new real[numParticles]{};
@@ -92,9 +92,9 @@ ParticleHandler::ParticleHandler(integer numParticles, integer numNodes) : numPa
 #if DIM > 1
     _h_dSdtxy = new real[numParticles]{};
     h_dSdtxy = _h_dSdtxy;
-#if DIM == 3
     _h_dSdtyy = new real[numParticles]{};
     h_dSdtyy = _h_dSdtyy;
+#if DIM == 3
     _h_dSdtxz = new real[numParticles]{};
     h_dSdtxz = _h_dSdtxz;
     _h_dSdtyz = new real[numParticles]{};
@@ -233,9 +233,9 @@ ParticleHandler::ParticleHandler(integer numParticles, integer numNodes) : numPa
 #if DIM > 1
     cuda::malloc(_d_Sxy, numParticles);
     d_Sxy = _d_Sxy;
-#if DIM == 3
     cuda::malloc(_d_Syy, numParticles);
     d_Syy = _d_Syy;
+#if DIM == 3
     cuda::malloc(_d_Sxz, numParticles);
     d_Sxz = _d_Sxz;
     cuda::malloc(_d_Syz, numParticles);
@@ -248,9 +248,9 @@ ParticleHandler::ParticleHandler(integer numParticles, integer numNodes) : numPa
 #if DIM > 1
     cuda::malloc(_d_dSdtxy, numParticles);
     d_dSdtxy = _d_dSdtxy;
-#if DIM == 3
     cuda::malloc(_d_dSdtyy, numParticles);
     d_dSdtyy = _d_dSdtyy;
+#if DIM == 3
     cuda::malloc(_d_dSdtxz, numParticles);
     d_dSdtxz = _d_dSdtxz;
     cuda::malloc(_d_dSdtyz, numParticles);
@@ -378,8 +378,8 @@ ParticleHandler::ParticleHandler(integer numParticles, integer numNodes) : numPa
     h_particles->setSolid( h_Sxx, h_dSdtxx, h_localStrain );
     ParticlesNS::Kernel::Launch::setSolid(d_particles, d_Sxx, d_dSdtxx, d_localStrain );
 #elif DIM == 2
-    h_particles->setSolid( h_Sxx, h_Sxy, h_dSdtxx, h_dSdtxy, h_localStrain );
-    ParticlesNS::Kernel::Launch::setSolid(d_particles, d_Sxx, d_Sxy, d_dSdtxx, d_dSdtxy, d_localStrain );
+    h_particles->setSolid( h_Sxx, h_Sxy, h_Syy, h_dSdtxx, h_dSdtxy, h_dSdtyy, h_localStrain );
+    ParticlesNS::Kernel::Launch::setSolid(d_particles, d_Sxx, d_Sxy, d_Syy, d_dSdtxx, d_dSdtxy, d_dSdtyy, d_localStrain );
 #else
     h_particles->setSolid( h_Sxx, h_Sxy, h_Syy, h_Sxz, h_Syz,
                            h_dSdtxx, h_dSdtxy, h_dSdtyy, h_dSdtxz, h_dSdtyz, h_localStrain );
@@ -477,8 +477,8 @@ ParticleHandler::~ParticleHandler() {
     delete [] _h_Sxx;
 #if DIM > 1
     delete [] _h_Sxy;
-#if DIM == 3
     delete [] _h_Syy;
+#if DIM == 3
     delete [] _h_Sxz;
     delete [] _h_Syz;
 #endif // DIM == 3
@@ -487,8 +487,8 @@ ParticleHandler::~ParticleHandler() {
     delete [] _h_dSdtxx;
 #if DIM > 1
     delete [] _h_dSdtxy;
-#if DIM == 3
     delete [] _h_dSdtyy;
+#if DIM == 3
     delete [] _h_dSdtxz;
     delete [] _h_dSdtyz;
 #endif // DIM == 3
@@ -548,8 +548,8 @@ ParticleHandler::~ParticleHandler() {
     cuda::free(_d_Sxx);
 #if DIM > 1
     cuda::free(_d_Sxy);
-#if DIM == 3
     cuda::free(_d_Syy);
+#if DIM == 3
     cuda::free(_d_Sxz);
     cuda::free(_d_Syz);
 #endif // DIM == 3
@@ -558,8 +558,8 @@ ParticleHandler::~ParticleHandler() {
     cuda::free(_d_dSdtxx);
 #if DIM > 1
     cuda::free(_d_dSdtxy);
-#if DIM == 3
     cuda::free(_d_dSdtyy);
+#if DIM == 3
     cuda::free(_d_dSdtxz);
     cuda::free(_d_dSdtyz);
 #endif // DIM == 3
@@ -812,8 +812,8 @@ void ParticleHandler::setPointer(IntegratedParticleHandler *integratedParticleHa
     d_Sxx = integratedParticleHandler->d_Sxx;
 #if DIM > 1
     d_Sxy = integratedParticleHandler->d_Sxy;
-#if DIM == 3
     d_Syy = integratedParticleHandler->d_Syy;
+#if DIM == 3
     d_Sxz = integratedParticleHandler->d_Sxz;
     d_Syz = integratedParticleHandler->d_Syz;
 #endif
@@ -821,8 +821,8 @@ void ParticleHandler::setPointer(IntegratedParticleHandler *integratedParticleHa
     d_dSdtxx = integratedParticleHandler->d_dSdtxx;
 #if DIM > 1
     d_dSdtxy = integratedParticleHandler->d_dSdtxy;
-#if DIM == 3
     d_dSdtyy = integratedParticleHandler->d_dSdtyy;
+#if DIM == 3
     d_dSdtxz = integratedParticleHandler->d_dSdtxz;
     d_dSdtyz = integratedParticleHandler->d_dSdtyz;
 #endif
@@ -870,8 +870,8 @@ void ParticleHandler::setPointer(IntegratedParticleHandler *integratedParticleHa
     h_particles->setSolid( h_Sxx, h_dSdtxx, h_localStrain );
     ParticlesNS::Kernel::Launch::setSolid(d_particles, d_Sxx, d_dSdtxx, d_localStrain );
 #elif DIM == 2
-    h_particles->setSolid( h_Sxx, h_Sxy, h_dSdtxx, h_dSdtxy, h_localStrain );
-    ParticlesNS::Kernel::Launch::setSolid(d_particles, d_Sxx, d_Sxy, d_dSdtxx, d_dSdtxy, d_localStrain );
+    h_particles->setSolid( h_Sxx, h_Sxy, h_Syy, h_dSdtxx, h_dSdtxy, h_dSdtyy, h_localStrain );
+    ParticlesNS::Kernel::Launch::setSolid(d_particles, d_Sxx, d_Sxy, d_Syy, d_dSdtxx, d_dSdtxy, d_dSdtyy, d_localStrain );
 #else
     h_particles->setSolid( h_Sxx, h_Sxy, h_Syy, h_Sxz, h_Syz,
                            h_dSdtxx, h_dSdtxy, h_dSdtyy, h_dSdtxz, h_dSdtyz, h_localStrain );
@@ -930,8 +930,8 @@ void ParticleHandler::resetPointer() {
     d_Sxx = _d_Sxx;
 #if DIM > 1
     d_Sxy = _d_Sxy;
-#if DIM == 3
     d_Syy = _d_Syy;
+#if DIM == 3
     d_Sxz = _d_Sxz;
     d_Syz = _d_Syz;
 #endif // DIM == 3
@@ -940,8 +940,8 @@ void ParticleHandler::resetPointer() {
     d_dSdtxx = _d_dSdtxx;
 #if DIM > 1
     d_dSdtxy = _d_dSdtxy;
-#if DIM == 3
     d_dSdtyy = _d_dSdtyy;
+#if DIM == 3
     d_dSdtxz = _d_dSdtxz;
     d_dSdtyz = _d_dSdtyz;
 #endif // DIM == 3
@@ -987,8 +987,8 @@ void ParticleHandler::resetPointer() {
     h_particles->setSolid( h_Sxx, h_dSdtxx, h_localStrain );
     ParticlesNS::Kernel::Launch::setSolid(d_particles, d_Sxx, d_dSdtxx, d_localStrain );
 #elif DIM == 2
-    h_particles->setSolid( h_Sxx, h_Sxy, h_dSdtxx, h_dSdtxy, h_localStrain );
-    ParticlesNS::Kernel::Launch::setSolid(d_particles, d_Sxx, d_Sxy, d_dSdtxx, d_dSdtxy, d_localStrain );
+    h_particles->setSolid( h_Sxx, h_Sxy, h_Syy, h_dSdtxx, h_dSdtxy, h_dSdtyy, h_localStrain );
+    ParticlesNS::Kernel::Launch::setSolid(d_particles, d_Sxx, d_Sxy, d_Syy, d_dSdtxx, d_dSdtxy, d_dSdtyy, d_localStrain );
 #else
     h_particles->setSolid( h_Sxx, h_Sxy, h_Syy, h_Sxz, h_Syz,
                            h_dSdtxx, h_dSdtxy, h_dSdtyy, h_dSdtxz, h_dSdtyz, h_localStrain );
@@ -1119,8 +1119,8 @@ void ParticleHandler::copySPH(To::Target target) {
     cuda::copy(h_Sxx, d_Sxx, length, target);
 #if DIM > 1
     cuda::copy(h_Sxy, d_Sxy, length, target);
-#if DIM == 3
     cuda::copy(h_Syy, d_Syy, length, target);
+#if DIM == 3
     cuda::copy(h_Sxz, d_Sxz, length, target);
     cuda::copy(h_Syz, d_Syz, length, target);
 #endif // DIM == 3
@@ -1128,8 +1128,8 @@ void ParticleHandler::copySPH(To::Target target) {
     cuda::copy(h_dSdtxx, d_dSdtxx, length, target);
 #if DIM > 1
     cuda::copy(h_dSdtxy, d_dSdtxy, length, target);
-#if DIM == 3
     cuda::copy(h_dSdtyy, d_dSdtyy, length, target);
+#if DIM == 3
     cuda::copy(h_dSdtxz, d_dSdtxz, length, target);
     cuda::copy(h_dSdtyz, d_dSdtyz, length, target);
 #endif // DIM == 3
@@ -1182,8 +1182,8 @@ IntegratedParticleHandler::IntegratedParticleHandler(integer numParticles, integ
     cuda::malloc(d_Sxx, numParticles);
 #if DIM > 1
     cuda::malloc(d_Sxy, numParticles);
-#if DIM == 3
     cuda::malloc(d_Syy, numParticles);
+#if DIM == 3
     cuda::malloc(d_Sxz, numParticles);
     cuda::malloc(d_Syz, numParticles);
 #endif // DIM == 3
@@ -1192,8 +1192,8 @@ IntegratedParticleHandler::IntegratedParticleHandler(integer numParticles, integ
     cuda::malloc(d_dSdtxx, numParticles);
 #if DIM > 1
     cuda::malloc(d_dSdtxy, numParticles);
-#if DIM == 3
     cuda::malloc(d_dSdtyy, numParticles);
+#if DIM == 3
     cuda::malloc(d_dSdtxz, numParticles);
     cuda::malloc(d_dSdtyz, numParticles);
 #endif // DIM == 3
@@ -1233,8 +1233,8 @@ IntegratedParticleHandler::IntegratedParticleHandler(integer numParticles, integ
 #if DIM == 1
     IntegratedParticlesNS::Kernel::Launch::setSolid(d_integratedParticles, d_Sxx, d_dSdtxx, d_localStrain );
 #elif DIM == 2
-    IntegratedParticlesNS::Kernel::Launch::setSolid(d_integratedParticles, d_Sxx, d_Sxy,
-                                                    d_dSdtxx, d_dSdtxy, d_localStrain );
+    IntegratedParticlesNS::Kernel::Launch::setSolid(d_integratedParticles, d_Sxx, d_Sxy, d_Syy,
+                                                    d_dSdtxx, d_dSdtxy, d_dSdtyy, d_localStrain );
 #else
     IntegratedParticlesNS::Kernel::Launch::setSolid(d_integratedParticles, d_Sxx, d_Sxy, d_Syy, d_Sxz, d_Syz,
                                           d_dSdtxx, d_dSdtxy, d_dSdtyy, d_dSdtxz, d_dSdtyz, d_localStrain );
@@ -1287,8 +1287,8 @@ IntegratedParticleHandler::~IntegratedParticleHandler() {
     cuda::free(d_Sxx);
 #if DIM > 1
     cuda::free(d_Sxy);
-#if DIM == 3
     cuda::free(d_Syy);
+#if DIM == 3
     cuda::free(d_Sxz);
     cuda::free(d_Syz);
 #endif // DIM == 3
@@ -1297,8 +1297,8 @@ IntegratedParticleHandler::~IntegratedParticleHandler() {
     cuda::free(d_dSdtxx);
 #if DIM > 1
     cuda::free(d_dSdtxy);
-#if DIM == 3
     cuda::free(d_dSdtyy);
+#if DIM == 3
     cuda::free(d_dSdtxz);
     cuda::free(d_dSdtyz);
 #endif // DIM == 3

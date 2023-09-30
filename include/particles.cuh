@@ -159,17 +159,17 @@ public:
 #endif
 
 #if SOLID
-    /// (pointer to) the xx-entry of the deviatoric stress tensor (array). The deviatoric stress tensor (DIM * DIM) is symmetric and traceless \f$ \sum_i S_{ii} = 0 $\f
+    /// (pointer to) the xx-entry of the deviatoric stress tensor (array). The deviatoric stress tensor (DIM * DIM) is symmetric and traceless \f$ \sum_{i=1}^3 S_{ii} = 0 $\f
     real *Sxx;
 #if DIM > 1
-    /// (pointer to) the xy-entry of the deviatoric stress tensor (array). The deviatoric stress tensor (DIM * DIM) is symmetric and traceless \f$ \sum_i S_{ii} = 0 $\f
+    /// (pointer to) the xy-entry of the deviatoric stress tensor (array). The deviatoric stress tensor (DIM * DIM) is symmetric and traceless \f$ \sum_{i=1}^3 S_{ii} = 0 $\f
     real *Sxy; // Sxy = Syx
-#if DIM == 3
-    /// (pointer to) the yy-entry of the deviatoric stress tensor (array). The deviatoric stress tensor (DIM * DIM) is symmetric and traceless \f$ \sum_i S_{ii} = 0 $\f
+    /// (pointer to) the yy-entry of the deviatoric stress tensor (array). The deviatoric stress tensor (DIM * DIM) is symmetric and traceless \f$ \sum_{i=1}^3 S_{ii} = 0 $\f
     real *Syy;
-    /// (pointer to) the xz-entry of the deviatoric stress tensor (array). The deviatoric stress tensor (DIM * DIM) is symmetric and traceless \f$ \sum_i S_{ii} = 0 $\f
+#if DIM == 3
+    /// (pointer to) the xz-entry of the deviatoric stress tensor (array). The deviatoric stress tensor (DIM * DIM) is symmetric and traceless \f$ \sum_{i=1}^3  S_{ii} = 0 $\f
     real *Sxz; // Sxz = Szx
-    /// (pointer to) the yz-entry of the deviatoric stress tensor (array). The deviatoric stress tensor (DIM * DIM) is symmetric and traceless \f$ \sum_i S_{ii} = 0 $\f
+    /// (pointer to) the yz-entry of the deviatoric stress tensor (array). The deviatoric stress tensor (DIM * DIM) is symmetric and traceless \f$ \sum_{i=1}^3  S_{ii} = 0 $\f
     real *Syz; // Syz = Szy
 #endif // DIM == 3
 #endif // DIM == 1
@@ -178,9 +178,9 @@ public:
 #if DIM > 1
     /// (pointer to) xy-entry of the time derivative of deviatoric stress tensor (array)
     real *dSdtxy;
-#if DIM == 3
     /// (pointer to) yy-entry of the time derivative of deviatoric stress tensor (array)
     real *dSdtyy;
+#if DIM == 3
     /// (pointer to) xz-entrie of the time derivative of deviatoric stress tensor (array)
     real *dSdtxz;
     /// (pointer to) yz-entrie of the time derivative of deviatoric stress tensor (array)
@@ -469,11 +469,13 @@ public:
      *
      * @param Sxx deviatoric Stress \f$ S_xx \f$ entry
      * @param Sxy deviatoric Stress \f$ S_xy \f$ entry
+     * @param Syy deviatoric Stress \f$ S_yy \f$ entry
      * @param dSdtxx time derivative of the deviatoric Stress \f$ \frac{dS_xx}{dt} \f$ entry
      * @param dSdtxy time derivative of the deviatoric Stress \f$ \frac{dS_xy}{dt} \f$ entry
+     * @param dSdtyy time derivative of the deviatoric Stress \f$ \frac{dS_yy}{dt} \f$ entry
      * @param localStrain
      */
-    CUDA_CALLABLE_MEMBER void setSolid(real *Sxx, real *Sxy,real *dSdtxx, real *dSdtxy,  real *localStrain);
+    CUDA_CALLABLE_MEMBER void setSolid(real *Sxx, real *Sxy, real *Syy,real *dSdtxx, real *dSdtxy, real* dSdtyy,  real *localStrain);
 #endif //DIM == 2
 #if DIM == 3
     /**
@@ -818,11 +820,7 @@ namespace ParticlesNS {
          *
          * @param particles
          * @param Sxx
-         * @param Sxy
-         * @param Syy
          * @param dSdtxx
-         * @param dSdtxy
-         * @param dSdtyy
          * @param localStrain
          */
         __global__ void setSolid(Particles *particles, real *Sxx,  real *dSdtxx, real *localStrain);
@@ -851,7 +849,7 @@ namespace ParticlesNS {
          * @param dSdtyy
          * @param localStrain
          */
-        __global__ void setSolid(Particles *particles, real *Sxx, real *Sxy, real *dSdtxx, real *dSdtxy, real *localStrain);
+        __global__ void setSolid(Particles *particles, real *Sxx, real *Sxy, real *Syy, real *dSdtxx, real *dSdtxy, real *dSdtyy, real *localStrain);
         namespace Launch {
             /**
             * wrapped Kernel call to setter, in dependence of `SOLID`(`DIM = 2`)
@@ -863,7 +861,7 @@ namespace ParticlesNS {
             * @param dSdtxy
             * @param localStrain
             */
-            void setSolid(Particles *particles, real *Sxx, real *Sxy, real *dSdtxx, real *dSdtxy, real *localStrain);
+            void setSolid(Particles *particles, real *Sxx, real *Sxy, real *Syy, real *dSdtxx, real *dSdtxy, real *dSdtyy, real *localStrain);
         }
 #endif // DIM == 2
 #if DIM == 3
@@ -1162,8 +1160,8 @@ public:
     real *dSdtxx;
 #if DIM > 1
     real *dSdtxy;
-#if DIM == 3
     real *dSdtyy;
+#if DIM == 3
     real *dSdtxz;
     real *dSdtyz;
 #endif // DIM == 3
@@ -1229,7 +1227,7 @@ public:
     CUDA_CALLABLE_MEMBER void setSolid(real *Sxx, real *dSdtxx, real *localStrain);
 #endif
 #if DIM == 2
-    CUDA_CALLABLE_MEMBER void setSolid(real *Sxx, real *Sxy, real *dSdtxx, real *dSdtxy, real *localStrain);
+    CUDA_CALLABLE_MEMBER void setSolid(real *Sxx, real *Sxy, real *Syy, real *dSdtxx, real *dSdtxy, real *dSdtyy, real *localStrain);
 #endif
 #if DIM == 3
     CUDA_CALLABLE_MEMBER void setSolid(real *Sxx, real *Sxy, real *Syy, real *Sxz, real *Syz, real *dSdtxx, real *dSdtxy, real *dSdtyy, real *dSdtxz, real *dSdtyz, real *localStrain);
@@ -1341,10 +1339,10 @@ namespace IntegratedParticlesNS {
         }
 #endif // DIM == 1
 #if DIM == 2
-        __global__ void setSolid(IntegratedParticles *integratedParticles, real *Sxx, real *Sxy, real *dSdtxx, real *dSdtxy, real *localStrain);
+        __global__ void setSolid(IntegratedParticles *integratedParticles, real *Sxx, real *Sxy, real *Syy, real *dSdtxx, real *dSdtxy, real *dSdtyy, real *localStrain);
         namespace Launch {
 
-            void setSolid(IntegratedParticles *integratedParticles, real *Sxx, real *Sxy, real *dSdtxx, real *dSdtxy,  real *localStrain);
+            void setSolid(IntegratedParticles *integratedParticles, real *Sxx, real *Sxy, real *Syy, real *dSdtxx, real *dSdtxy, real *dSdtyy,  real *localStrain);
         }
 #endif // DIM == 2
 #if DIM == 3

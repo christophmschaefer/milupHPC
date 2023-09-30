@@ -48,15 +48,9 @@ for i in range(numPlots):
     fig = plt.figure(dpi=500)
     ax = fig.add_subplot() #projection='3d' for 3D plot
     r = positions[i]
+
     
-    #to set the rings apart from each other to see the density everywhere
-    """ for j in range(len(r)):
-        if(j < len(r)/2):
-            r[j,0] += 50*0.059
-        else:
-            r[j,0] -= 50*0.059 """
-    
-    p = ax.scatter(r[:, 0], r[:, 1], c=density[i], marker=",", s=1, vmin = _min, vmax = _max) #, r[:, 2] for 3d, vmin, vmax set the min/max for the colorbar 
+    p = ax.scatter(r[:, 0], r[:, 1], c=density[i], marker=",", s=1, vmin = _min, vmax = _max) #, r[:, 2] for 3d, vmin, vmax set the min/max for the colorbar
     ax.set_xlabel('X')
     ax.set_ylabel('Y')
 
@@ -66,9 +60,16 @@ for i in range(numPlots):
     #ax.set_ylim3d(-10, 10)
     #ax.set_zlim3d(-10, 10)″
 
-    #set ax limits 
-    ax.set_xlim(-14, 14) 
+    #set ax limits
+    #for rings from origin
+    ax.set_xlim(-14, 14)
     ax.set_ylim(-7,7) #(-8, 8)
+    #rings in the 2nd quadrant
+    #ax.set_xlim(-3, 25)
+    #ax.set_ylim(-1, 13)
+    #rings in the first quadrant
+    #ax.set_xlim(-25, 3)
+    #ax.set_ylim(-1, 13)
     #ax.set_title('Timestep: {}'.format(time[i][0]))
     ax.set_title("Density")
     
