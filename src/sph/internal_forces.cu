@@ -41,6 +41,8 @@ __global__ void SPH::Kernel::internalForces(::SPH::SPH_kernel kernel, Material *
 #endif
 
 #if ARTIFICIAL_STRESS
+    real R_i[DIM][DIM];
+    real R_j[DIM][DIM];
     real artf = 0;
     real arts_rij = 0;
     real meanParticleDistance;
@@ -327,21 +329,9 @@ __global__ void SPH::Kernel::internalForces(::SPH::SPH_kernel kernel, Material *
 
 #if SOLID
             // get sigma_i
-#pragma unroll
-            for (d = 0; d < DIM; d++) {
-#pragma unroll
-                for (e = 0; e < DIM; e++) {
-                    sigma_i[d][e] = particles->sigma[CudaUtils::stressIndex(i, d, e)];
-                }
-            }
+            SPH::calcStress(particles, sigma_i, i);
             // get sigma_j
-#pragma unroll
-            for (d = 0; d < DIM; d++) {
-#pragma unroll
-                for (e = 0; e < DIM; e++) {
-                    sigma_j[d][e] = particles->sigma[CudaUtils::stressIndex(j, d, e)];
-                }
-            }
+            SPH::calcStress(particles, sigma_j, j);
 
             // calculate edot and rdot
             // edot_ab = 0.5 * (d_b v_a + d_a v_b)
@@ -451,6 +441,10 @@ __global__ void SPH::Kernel::internalForces(::SPH::SPH_kernel kernel, Material *
             exponentTensor = materials[matId].artificialStress.exponent_tensor;
             artf = SPH::fixTensileInstability(kernel, particles, i, j, meanParticleDistance );
             artf = cuda::math::pow(artf, exponentTensor);
+            // get R_i
+            SPH::calcArtificialStress(materials, sigma_i, R_i, matId);
+            // get R_j
+            SPH::calcArtificialStress(materials, sigma_j, R_j, matIdj);
 #endif
             // calculate acceleration for Solids
 #pragma unroll
@@ -467,10 +461,10 @@ __global__ void SPH::Kernel::internalForces(::SPH::SPH_kernel kernel, Material *
 #endif // SPH_EQU_VERSION
 #if ARTIFICIAL_STRESS
 #if (SPH_EQU_VERSION == 1)
-                    arts_rij = particles->R[CudaUtils::stressIndex(i, d, dd)] / (particles->rho[i]*particles->rho[i])
-                    + particles->R[CudaUtils::stressIndex(j, d, dd)] / (particles->rho[j]*particles->rho[j]);
+                    arts_rij = R_i[d][dd] / (particles->rho[i]*particles->rho[i])
+                    + R_j[d][dd] / (particles->rho[j]*particles->rho[j]);
 #elif (SPH_EQU_VERSION == 2)
-                    arts_rij = ( particles->R[CudaUtils::stressIndex(i, d, dd)] + particles->R[CudaUtils::stressIndex(j, d, dd)] ) / (particles->rho[i]*particles->rho[j]);
+                    arts_rij = ( R_i[d][dd] + R_j[d][dd] ) / (particles->rho[i]*particles->rho[j]);
 #endif
                     accels[d] += particles->mass[j] * arts_rij * artf * dWdx[dd];
 #endif // ARTIFICIAL_STRESS

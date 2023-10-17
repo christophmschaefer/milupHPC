@@ -2,73 +2,27 @@
 #include "../include/cuda_utils/cuda_launcher.cuh"
 
 #if SOLID
-        __global__ void SPH::Kernel::calculateStress(Particles *particles, int numParticles){
-            int i, inc;
-            real p;
-            real Sxx;
-#if DIM > 1
-            real Sxy, Syy;
-#if DIM == 3
-            real Sxz, Syz;
-#endif
-#endif
-            real sigma[DIM][DIM];
-
+        __device__ void SPH::calcStress(Particles *particles, real sigma[DIM][DIM], int p) {
             int d;
             int e;
-
-            inc = blockDim.x * gridDim.x;
-            for( i = threadIdx.x + blockIdx.x * blockDim.x; i < numParticles; i += inc){
-
-                Sxx = particles->Sxx[i];
+            sigma[0][0] = particles->Sxx[p];
 #if DIM > 1
-                Sxy = particles->Sxy[i];
-                Syy = particles->Syy[i];
+            sigma[0][1] = sigma[1][0] = particles->Sxy[p];
+            sigma[1][1] = particles->Syy[p];
 #if DIM == 3
-                Sxz = particles->Sxz[i],
-                Syz = particles->Syz[i];
-#endif
-#endif
-                p = particles->p[i];
-
-                // Calculate stress
-#if DIM == 1
-                sigma[0] = Sxx;
-#elif DIM == 2
-                sigma[0][0] = Sxx;
-                sigma[1][0] = sigma[0][1] = Sxy;
-                sigma[1][1] = Syy;
-#else
-                sigma[0][0] = Sxx;
-                sigma[1][0] = sigma[0][1] = Sxy;
-                sigma[1][1] = Syy;
-                sigma[1][2] = sigma[2][1] = Syz;
-                sigma[2][0] = sigma[0][2] = Sxz;
-                sigma[2][2] = -(Sxx+Syy);
-#endif // DIM
+            sigma[1][2] = sigma[2][1] = particles->Syz[p];
+            sigma[2][0] = sigma[0][2] = particles->Sxz[p];
+            sigma[2][2] = -(particles->Sxx[p]+particles->Syy[p]);
+#endif // DIM == 3
+#endif // DIM > 1
 #pragma unroll
-                for( d = 0; d < DIM; d++){
+            for (d = 0; d < DIM; d++) {
 #pragma unroll
-                    for(e = 0; e < DIM; e++){
-                        if(d == e) {
-                            sigma[d][e] -= p;
-                        }
+                for (e = 0; e < DIM; e++) {
+                    if (d == e) {
+                        sigma[d][e] -= particles->p[p];
                     }
                 }
-
-                // remember stress
-#pragma unroll
-                for (d = 0; d < DIM; d++) {
-#pragma unroll
-                    for (e = 0; e < DIM; e++) {
-                        particles->sigma[CudaUtils::stressIndex(i,d,e)] = sigma[d][e];
-                    }
-                }
-
-            } // particle loop
+            }
         }
-real SPH::Kernel::Launch::calculateStress(Particles *particles, int numParticles) {
-    ExecutionPolicy executionPolicy;
-    return cuda::launch(true, executionPolicy, ::SPH::Kernel::calculateStress, particles, numParticles);
-}
 #endif // SOLID

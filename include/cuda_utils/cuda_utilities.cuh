@@ -102,6 +102,8 @@ namespace CudaUtils {
 
         __global__ void collectValues(integer *indices, real *entries, real *collector, integer count);
 
+        __global__ void collectValues(integer *indices, integer *entries, integer *collector, integer count);
+
         __global__ void checkValues(integer *indices, real *entry1, real *entry2, real *entry3, integer count);
 
         template<typename T>
@@ -130,6 +132,8 @@ namespace CudaUtils {
 
         namespace Launch {
             real collectValues(integer *indices, real *entries, real *collector, integer count);
+
+            real collectValues(integer *indices, integer *entries, integer *collector, integer count);
 
             real checkValues(integer *indices, real *entry1, real *entry2, real *entry3, integer count);
 

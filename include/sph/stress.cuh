@@ -12,36 +12,21 @@
 
 #include "../particles.cuh"
 #include "../parameter.h"
-#include "cuda_utils/cuda_utilities.cuh"
-#include "cuda_utils/cuda_runtime.h"
-#include "../cuda_utils/linalg.cuh"
 
 namespace SPH {
-    namespace Kernel {
         /**
-         * @brief Calculate and Set the stress
-         *
-         * calculate and set stress tensor \f$\sigma^{ij}\f$ for each particle from the deviatoric stress \f$S^{ij}\f$ and the pressure \f$p\f$
-         * \f{align}{
-                \sigma^{ij = -p\delta^{ij} + S^{ij}
-         * \f}
-         *
-         * @param particles Particles class instance
-         * @param numParticles amount of particles
-         */
-        __global__ void calculateStress(Particles *particles, int numParticles);
-
-        namespace Launch {
-            /**
-             * @brief Wrapper for ::SPH::Kernel::calculateStress().
-             *
-             * @param particles Particles class instance
-             * @param numParticles amount of particles
-             * @return Wall time for kernel execution
-             */
-            real calculateStress(Particles *particles, int numParticles);
-        }
-    }
+           * @brief Calculate and Set the stress for one particle p
+           *
+           * calculate and set stress tensor \f$\sigma^{ij}\f$ for one particle from the deviatoric stress \f$S^{ij}\f$ and the pressure \f$p\f$
+           * \f{align}{
+                  \sigma^{ij = -p\delta^{ij} + S^{ij}
+           * \f}
+           *
+           * @param[in] particles Particles class instance
+           * @param[out] sigma stress tensor for particle p
+           * @param[in] p particle index for which stress tensor is calculated
+           */
+        __device__ void calcStress(Particles *particles, real sigma[DIM][DIM], int p);
 }
 
 

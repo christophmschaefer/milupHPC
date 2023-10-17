@@ -41,8 +41,6 @@
 #include "sph/pressure.cuh"
 #include "sph/internal_forces.cuh"
 #include "sph/soundspeed.cuh"
-#include "sph/stress.cuh"
-#include "sph/artificial_stress.cuh"
 #include "simulation_time_handler.h"
 
 #include "processing/kernels.cuh"
@@ -399,7 +397,7 @@ public:
      *
      * To build the parallel tree it is necessary to determine the domain list or common coarse tree nodes which
      * are derived from the ranges. After that, the tree is built locally and finally all the domain list nodes
-     * or rather those attributes as indices are either saved to an instance of the omainList class
+     * or rather those attributes as indices are either saved to an instance of the DomainList class
      * or if they do not exist after building the tree created and afterwards assigned.
      *
      * @return accumulated time for functions within

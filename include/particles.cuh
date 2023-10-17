@@ -196,16 +196,6 @@ public:
     real *curlv;
 #endif
 
-#if SOLID || NAVIER_STOKES
-    /// (pointer to) sigma/stress tensor (array)
-    real *sigma; // stress tensor (DIM * DIM)
-#endif
-
-#if ARTIFICIAL_STRESS
-    /// (pointer to) tensile instability, tensor for correction (array)
-    real *R; // tensile instability, tensor for correction (DIM * DIM)
-#endif
-
 #if POROSITY
     /// pressure of the sph particle after the last successful timestep
     real *pold;
@@ -497,22 +487,6 @@ public:
                                        real *dSdtxx, real *dSdtxy, real *dSdtyy, real *dSdtxz, real *dSdtyz, real *localStrain);
 #endif // DIM == 3
 #endif // SOLID
-#if SOLID || NAVIER_STOKES
-    /**
-     * Setter, in dependence of `SOLID` or `NAVIER_STOKES`
-     *
-     * @param sigma
-     */
-    CUDA_CALLABLE_MEMBER void setSolidNavierStokes(real *sigma);
-#endif
-#if ARTIFICIAL_STRESS
-    /**
-     * Setter, in dependence of `ARTIFICIAL_STRESS
-     * `
-     * @param R
-     */
-    CUDA_CALLABLE_MEMBER void setArtificialStress(real *R);
-#endif
 #if POROSITY
     /**
      * Setter, in dependence of `POROSITY`
@@ -903,42 +877,6 @@ namespace ParticlesNS {
         }
 #endif // DIM == 3
 #endif // SOLID
-#if SOLID || NAVIER_STOKES
-        /**
-         * Kernel call to setter, in dependence of `SOLID` or `NAVIER_STOKES`
-         *
-         * @param particles
-         * @param sigma
-         */
-        __global__ void setSolidNavierStokes(Particles *particles, real *sigma);
-        namespace Launch {
-            /**
-             * Wrapped kernel call to setter, in dependence of `SOLID` or `NAVIER_STOKES`
-             *
-             * @param particles
-             * @param sigma
-             */
-            void setSolidNavierStokes(Particles *particles, real *sigma);
-        }
-#endif
-#if ARTIFICIAL_STRESS
-        /**
-         * Kernel call to setter, in dependence of `ARTIFICIAL_STRESS`
-         *
-         * @param particles
-         * @param R
-         */
-        __global__ void setArtificialStress(Particles *particles, real *R);
-        namespace Launch {
-            /**
-             * Wrapped kernel call to setter, in dependence of `ARTIFICIAL_STRESS`
-             *
-             * @param particles
-             * @param R
-             */
-            void setArtificialStress(Particles *particles, real *R);
-        }
-#endif
 #if POROSITY
         /**
          * Kernel call to setter, in dependence of `POROSITY`
@@ -1169,12 +1107,6 @@ public:
 
     real *localStrain; // local strain
 #endif // SOLID
-#if SOLID || NAVIER_STOKES
-    real *sigma;
-#endif
-#if ARTIFICIAL_STRESS
-    real *R;
-#endif
 
     /**
      * Default constructor
@@ -1233,13 +1165,6 @@ public:
     CUDA_CALLABLE_MEMBER void setSolid(real *Sxx, real *Sxy, real *Syy, real *Sxz, real *Syz, real *dSdtxx, real *dSdtxy, real *dSdtyy, real *dSdtxz, real *dSdtyz, real *localStrain);
 #endif
 #endif // SOLID
-
-#if SOLID || NAVIER_STOKES
-    CUDA_CALLABLE_MEMBER void setSolidNavierStokes(real *sigma);
-#endif
-#if ARTIFICIAL_STRESS
-    CUDA_CALLABLE_MEMBER void setArtificialStress(real *R);
-#endif
 
     /**
      * Reset (specific) entries

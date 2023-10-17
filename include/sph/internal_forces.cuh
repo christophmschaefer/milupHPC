@@ -16,6 +16,8 @@
 #include "kernel.cuh"
 #include "../cuda_utils/linalg.cuh"
 #include "../cuda_utils/cuda_utilities.cuh"
+#include "stress.cuh"
+#include "artificial_stress.cuh"
 
 namespace SPH {
     namespace Kernel {

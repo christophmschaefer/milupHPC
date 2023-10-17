@@ -12,40 +12,27 @@
 
 #include "../particles.cuh"
 #include "../parameter.h"
-#include "cuda_utils/cuda_utilities.cuh"
-#include "cuda_utils/cuda_runtime.h"
-#include "../cuda_utils/linalg.cuh"
 #include "../materials/material.cuh"
 
 namespace SPH {
-    namespace Kernel {
-        /**
-         * @brief Calculate and set the artificial stress
-         *
-         * calculate and set the artificial stress tensor \f$R^{ij}\f$ for each particle
-         * \f{align}{
-                R^{ij} = \begin{cases}
-                -\epsilon \sigma^{ij}_a & \text{for } \sigma^{ij} > 0 \\
-                0 & \text{otherwise} \\
-                \end{cases}
-         * \f}
-         *
-         * @param particles Particles class instance
-         * @param numParticles amount of particles
-         */
-        __global__ void calculateArtificialStress(Material *materials, Particles *particles, int numParticles);
+    /**
+     * @brief Calculate and set the artificial stress for one particle
+     *
+     * calculate and set the artificial stress tensor \f$R^{ij}\f$ for each particle
+     * \f{align}{
+            R^{ij} = \begin{cases}
+            -\epsilon \sigma^{ij}_a & \text{for } \sigma^{ij} > 0 \\
+            0 & \text{otherwise} \\
+            \end{cases}
+     * \f}
+     *
+     * @param materials Material class instance
+     * @param sigma stress
+     * @param[out] R artificial stress
+     * @param matId matId of corresponding particles
+     */
+    __device__ void calcArtificialStress(Material *materials, real sigma[DIM][DIM], real R[DIM][DIM], int matId);
 
-        namespace Launch {
-            /**
-             * @brief Wrapper for ::SPH::Kernel::artificialStress().
-             *
-             * @param particles Particles class instance
-             * @param numParticles amount of particles
-             * @return Wall time for kernel execution
-             */
-            real calculateArtificialStress(Material *materials, Particles *particles, int numParticles);
-        }
-    }
 }
 
 

@@ -53,6 +53,18 @@ namespace CudaUtils {
             }
         }
 
+        __global__ void collectValues(integer *indices, integer *entries, integer *collector, integer count) {
+
+            integer index = threadIdx.x + blockIdx.x * blockDim.x;
+            integer stride = blockDim.x * gridDim.x;
+            integer offset = 0;
+
+            while ((index + offset) < count) {
+                collector[index + offset] = entries[indices[index + offset]];
+                offset += stride;
+            }
+        }
+
         __global__ void checkValues(integer *indices, real *entry1, real *entry2, real *entry3,
                                       integer count) {
 
@@ -318,6 +330,12 @@ namespace CudaUtils {
 
 
         real Launch::collectValues(integer *indices, real *entries, real *collector, integer count) {
+            ExecutionPolicy executionPolicy;
+            return cuda::launch(true, executionPolicy, ::CudaUtils::Kernel::collectValues, indices, entries,
+                                collector, count);
+        }
+
+        real Launch::collectValues(integer *indices, integer *entries, integer *collector, integer count) {
             ExecutionPolicy executionPolicy;
             return cuda::launch(true, executionPolicy, ::CudaUtils::Kernel::collectValues, indices, entries,
                                 collector, count);

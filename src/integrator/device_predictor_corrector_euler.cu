@@ -154,8 +154,6 @@ namespace PredictorCorrectorEulerNS {
 #endif
 */
 // end: just for debugging purposes!!!
-                if( i == 1){
-                    printf("particle loop");}
                 particles->x[i] = particles->x[i] + dt/2 * (predictor->vx[i] + particles->vx[i]);
                 //if (i == 12) { //(i % 1000 == 0) {
                 //    printf("corrector: x[%i] = %e + %e/2 * (%e + %e)\n", i, particles->x[i], dt, predictor->vx[i],
@@ -223,8 +221,6 @@ namespace PredictorCorrectorEulerNS {
                 particles->dSdtxx[i] = 0.5 * (particles->dSdtxx[i] + predictor->dSdtxx[i]);
 
 #if DIM > 1
-                if( i == 1){
-                    printf("Sxy");}
                 particles->Sxy[i] = particles->Sxy[i] + dt/2 * (predictor->dSdtxy[i] + particles->dSdtxy[i]);
                 particles->dSdtxy[i] = 0.5 * (particles->dSdtxy[i] + predictor->dSdtxy[i]);
 

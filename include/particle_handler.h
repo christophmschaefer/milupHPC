@@ -131,14 +131,6 @@ public:
     /// host local strain
     real *h_localStrain, *_h_localStrain;
 #endif // SOLID
-#if SOLID || NAVIER_STOKES
-    /// host sigma/stress tensor
-    real *h_sigma, *_h_sigma;
-#endif
-#if ARTIFICIAL_STRESS
-    /// host tensile instability
-    real *h_R, *_h_R;
-#endif
 #if BALSARA_SWITCH
     real *h_divv;
     real *h_curlv;
@@ -318,14 +310,6 @@ public:
     /// device local strain
     real *d_localStrain, *_d_localStrain;
 #endif // SOLID
-#if SOLID || NAVIER_STOKES
-    /// device sigma/stress tensor
-    real *d_sigma, *_d_sigma;
-#endif
-#if ARTIFICIAL_STRESS
-    /// device tensile instability
-    real *d_R, *_d_R;
-#endif
 #if BALSARA_SWITCH
     real *d_divv;
     real *d_curlv;
@@ -540,12 +524,6 @@ public:
 #endif // DIM > 1
     real *d_localStrain;
 #endif // SOLID
-#if SOLID || NAVIER_STOKES
-    real *d_sigma;
-#endif
-#if ARTIFICIAL_STRESS
-    real *d_R;
-#endif
 
     /// device instance of `IntegratedParticles` class
     IntegratedParticles *d_integratedParticles;

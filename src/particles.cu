@@ -245,16 +245,6 @@ CUDA_CALLABLE_MEMBER void Particles::setArtificialViscosity(real *muijmax) {
     }
 #endif // DIM == 3
 #endif // SOLID
-#if SOLID || NAVIER_STOKES
-    CUDA_CALLABLE_MEMBER void Particles::setSolidNavierStokes(real *sigma) {
-        this->sigma = sigma;
-    }
-#endif
-#if ARTIFICIAL_STRESS
-    CUDA_CALLABLE_MEMBER void Particles::setArtificialStress(real *R) {
-        this->R = R;
-    }
-#endif
 #if POROSITY
 CUDA_CALLABLE_MEMBER void Particles::setPorosity(real *pold, real *alpha_jutzi, real *alpha_jutzi_old, real *dalphadt,
                                       real *dalphadp, real *dp, real *dalphadrho, real *f, real *delpdelrho,
@@ -873,24 +863,6 @@ namespace ParticlesNS {
 #endif // DIM
 #endif // SOLID
 
-#if SOLID || NAVIER_STOKES
-        __global__ void setSolidNavierStokes(Particles *particles, real *sigma) {
-            particles->setSolidNavierStokes(sigma);
-        }
-        void Launch::setSolidNavierStokes(Particles *particles, real *sigma) {
-            ExecutionPolicy executionPolicy(1, 1);
-            cuda::launch(false, executionPolicy, ::ParticlesNS::Kernel::setSolidNavierStokes, particles, sigma);
-        }
-#endif
-#if ARTIFICIAL_STRESS
-        __global__ void setArtificialStress(Particles *particles, real *R) {
-            particles->setArtificialStress(R);
-        }
-        void Launch::setArtificialStress(Particles *particles, real *R) {
-            ExecutionPolicy executionPolicy(1, 1);
-            cuda::launch(false, executionPolicy, ::ParticlesNS::Kernel::setArtificialStress, particles, R);
-        }
-#endif
 #if POROSITY
         __global__ void setPorosity(Particles *particles, real *pold, real *alpha_jutzi, real *alpha_jutzi_old, real *dalphadt,
                                     real *dalphadp, real *dp, real *dalphadrho, real *f, real *delpdelrho,
@@ -1140,16 +1112,6 @@ CUDA_CALLABLE_MEMBER void IntegratedParticles::setSolid(real *Sxx, real *Sxy, re
     }
 #endif // DIM == 3
 #endif
-#if SOLID || NAVIER_STOKES
-    CUDA_CALLABLE_MEMBER void IntegratedParticles::setSolidNavierStokes(real *sigma) {
-    this->sigma = sigma;
-}
-#endif
-#if ARTIFICIAL_STRESS
-    CUDA_CALLABLE_MEMBER void IntegratedParticles::setArtificialStress(real *R) {
-    this->R = R;
-}
-#endif
 
 CUDA_CALLABLE_MEMBER void IntegratedParticles::reset(integer index) {
 
@@ -1361,29 +1323,6 @@ namespace IntegratedParticlesNS {
                          dSdtxx, dSdtxy, dSdtyy, dSdtxz, dSdtyz, localStrain);
         }
 #endif // DIM == 3
-#endif
-#if SOLID || NAVIER_STOKES
-        __global__ void setSolidNavierStokes(IntegratedParticles *integratedParticles, real *sigma) {
-            integratedParticles->setSolidNavierStokes(sigma);
-        }
-
-        namespace Launch {
-            void setSolidNavierStokes(IntegratedParticles *integratedParticles, real *sigma) {
-                ExecutionPolicy executionPolicy(1, 1);
-                cuda::launch(false, executionPolicy, ::IntegratedParticlesNS::Kernel::setSolidNavierStokes,
-                             integratedParticles, sigma);
-            }
-        }
-#endif
-#if ARTIFICIAL_STRESS
-        __global__ void setArtificialStress(IntegratedParticles *integratedParticles, real *R) {
-            integratedParticles->setArtificialStress(R);
-        }
-        void Launch::setArtificialStress(IntegratedParticles *integratedParticles, real *R) {
-            ExecutionPolicy executionPolicy(1, 1);
-            cuda::launch(false, executionPolicy, ::IntegratedParticlesNS::Kernel::setArtificialStress,
-                         integratedParticles, R);
-        }
 #endif
     }
 }
