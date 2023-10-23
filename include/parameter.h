@@ -24,7 +24,7 @@ typedef int idInteger;
 
 #define MAX_LEVEL 21
 
-#define DEBUGGING 1
+#define DEBUGGING 0
 
 /**
  * * `SAFETY_LEVEL 0`: almost no safety measures
@@ -32,7 +32,7 @@ typedef int idInteger;
  * * `SAFETY_LEVEL 2`: more safety measures, including assertions
  * * `SAFETY_LEVEL 3`: many security measures, including all assertions
  */
-#define SAFETY_LEVEL 3
+#define SAFETY_LEVEL 2
 
 /// Dimension of the problem
 #define DIM 2

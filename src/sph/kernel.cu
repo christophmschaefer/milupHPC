@@ -215,7 +215,6 @@ namespace SPH {
             dx[d] = 0;
         }
         kernel(&W2, dWdx, &dWdr, dx, hbar);
-        //printf("++++++++++++++ %.17lf\n", W/W2);
         return W/W2;
 
     }

@@ -18,11 +18,22 @@ fillUp = False
 r_inner = 3.0
 r_outer = 4.0
 
-# shift of the rings from origin on x-axis
-shift = 6.0
-
 # particle spacing
-delta_p = 0.1
+delta_p = 0.02
+# 0.1   --> 2 * 2.196 particles
+# 0.05  --> 2 * 8.804  particles
+# 0.02  --> 2 * 54.988 particles
+# 0.01  --> 2 * 219.860 particles
+# 0.005 --> 2 * 879.624 particles
+# 0.001 --> 2 * 21.991.108 particles
+
+# shift of the rings from origin on x-axis
+# shift = 6    # for delta_p 0.1
+# shift = 4.5  # for delta_p 0.05
+shift = 4.75 # for delta_p 0.02
+# shift = 4.85 # for delta_p 0.01, 0.005, 0.001
+
+
 # projected speed
 v_p = 0.059
 
@@ -116,9 +127,11 @@ v_final = np.concatenate((v, v2))
 
 if fillUp:
     h5f = h5py.File("rings_2N{}-3D.h5".format(N), "w")
+    print("Saving to rings_2N{}-3D.h5...".format(N))
 else:
     h5f = h5py.File("rings_2N{}-2D.h5".format(N), "w")
-print("Saving to rings.h5 ...")
+    print("Saving to rings_2N{}-2D.h5...".format(N))
+
 
 # write to hdf5 data set
 h5f.create_dataset("x", data=r_final)

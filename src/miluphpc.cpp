@@ -2342,7 +2342,7 @@ real Miluphpc::parallel_sph() {
 
     integer *d_markedSendIndices = buffer->d_integerBuffer;
     real *d_collectedEntries = buffer->d_realBuffer;
-    integer *d_collectedEntriesInteger = buffer->d_integerBuffer3;
+    integer *d_collectedEntriesInteger = buffer->d_integerBuffer3; // TODO: okay to use it? needs reset? probably not
     integer *h_particles2SendCount = new integer[subDomainKeyTreeHandler->h_subDomainKeyTree->numProcesses];
 
     timer.reset();
