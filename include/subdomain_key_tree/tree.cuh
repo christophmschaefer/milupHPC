@@ -28,13 +28,24 @@ namespace KeyNS {
  * @brief Table needed to convert from Lebesgue to Hilbert keys
  */
 #if DIM == 1
-    CUDA_CALLABLE_MEMBER const unsigned char DirTable[1][1] = {{1}}; //TODO: 1D DirTable?
+#ifndef __CUDACC__
+    const unsigned char DirTable[1][1] = {{1}}; //TODO: 1D DirTable?
+#else
+    __device__ const unsigned char DirTable[1][1] = {{1}}; //TODO: 1D DirTable?
+#endif // __CUDACC__
 #elif DIM == 2
-    CUDA_CALLABLE_MEMBER const unsigned char DirTable[4][4] =
+#ifndef __CUDACC__
+    const unsigned char DirTable[4][4] =
             {{1,2,0,0},
              {0,1,3,1},
              {2,0,2,3},
              {3,3,1,2}};
+#else __device__ const unsigned char DirTable[4][4] =
+            {{1,2,0,0},
+             {0,1,3,1},
+             {2,0,2,3},
+             {3,3,1,2}};
+#endif // __CUDACC__
 #else DIM == 3
 #ifndef __CUDACC__
     const unsigned char DirTable[12][8] =
@@ -64,20 +75,32 @@ namespace KeyNS {
              {1,  1,  8,  5,  3,  3,  8,  6},
              {11, 5,  0,  0,  11, 6,  2,  2},
              {1,  1,  4,  10, 3,  3,  7,  10}};
-#endif
+#endif // __CUDACC__
 #endif
 
 /**
  * @brief Table needed to convert from Lebesgue to Hilbert keys
  */
 #if DIM == 1
-    CUDA_CALLABLE_MEMBER const unsigned char HilbertTable[1][1] = {{1}}; //TODO: 1D HilbertTable?
+#ifndef __CUDACC__
+    const unsigned char HilbertTable[1][1] = {{1}}; //TODO: 1D HilbertTable?
+#else
+    __device__ const unsigned char HilbertTable[1][1] = {{1}}; //TODO: 1D HilbertTable?
+#endif // __CUDACC__
 #elif DIM == 2
-    CUDA_CALLABLE_MEMBER const unsigned char HilbertTable[4][4] =
+#ifndef __CUDACC__
+    const unsigned char HilbertTable[4][4] =
             {{0,3,1,2},
              {0,1,3,2},
              {2,3,1,0},
              {2,1,3,0}};
+#else
+    __device__ const unsigned char HilbertTable[4][4] =
+            {{0,3,1,2},
+             {0,1,3,2},
+             {2,3,1,0},
+             {2,1,3,0}};
+#endif // __CUDACC__
 #else
 #ifndef __CUDACC__
     const unsigned char HilbertTable[12][8] = {{0, 7, 3, 4, 1, 6, 2, 5},
@@ -105,7 +128,7 @@ namespace KeyNS {
                                                                     {2, 1, 3, 0, 5, 6, 4, 7},
                                                                     {4, 7, 5, 6, 3, 0, 2, 1},
                                                                     {6, 5, 7, 4, 1, 2, 0, 3}};
-#endif
+#endif // __CUDACC__
 #endif
 
     /**
