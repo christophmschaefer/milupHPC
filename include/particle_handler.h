@@ -32,7 +32,6 @@ public:
     real *h_vx, *_h_vx;
     /// host x acceleration
     real *h_ax, *_h_ax;
-    //real *h_qxx;
     real *h_g_ax;
     real *h_ax_old, *h_g_ax_old; // only for leapfrog integrator
 #if DIM > 1
@@ -42,10 +41,6 @@ public:
     real *h_vy, *_h_vy;
     /// host y acceleration
     real *h_ay, *_h_ay;
-    /// host quadrupoles
-    real *h_qxx, *_h_qxx;
-    real *h_qxy, *_h_qxy;
-    real *h_qyy, *_h_qyy;
     real *h_g_ay;
     real *h_ay_old, *h_g_ay_old; // only for leapfrog integrator
 #if DIM == 3
@@ -55,14 +50,26 @@ public:
     real *h_vz, *_h_vz;
     /// host z acceleration
     real *h_az, *_h_az;
-    /// host quadrupoles
-    real *h_qxz, *_h_qxz;
-    real *h_qyz, *_h_qyz;
-    real *h_qzz, *_h_qzz;
     real *h_g_az;
     real *h_az_old, *h_g_az_old; // only for leapfrog integrator
 #endif
 #endif
+
+#if QUADRUPOLE
+    /// host xx component of quadrupole tensor
+    real *h_qxx, *_h_qxx;
+#if DIM > 1
+    /// host xy & yy components of quadrupole tensor
+    real *h_qxy, *_h_qxy;
+    real *h_qyy, *_h_qyy;
+#if DIM == 3
+    /// host xz & yz & zz components of quadrupole tensor
+    real *h_qxz, *_h_qxz;
+    real *h_qyz, *_h_qyz;
+    real *h_qzz, *_h_qzz;
+#endif
+#endif
+#endif // QUADRUPOLE
 
     integer *h_nodeType;
 
@@ -204,7 +211,6 @@ public:
     real *d_vx, *_d_vx;
     /// device x acceleration
     real *d_ax, *_d_ax;
-    //real *d_qxx;
     real *d_g_ax;
     real *d_ax_old, *d_g_ax_old; // only for leapfrog integrator
 #if DIM > 1
@@ -214,10 +220,6 @@ public:
     real *d_vy, *_d_vy;
     /// device y acceleration
     real *d_ay, *_d_ay;
-    /// device quadrupoles
-    real *d_qxx, *_d_qxx;
-    real *d_qxy, *_d_qxy;
-    real *d_qyy, *_d_qyy;
     real *d_g_ay;
     real *d_ay_old, *d_g_ay_old; // only for leapfrog integrator
 #if DIM == 3
@@ -227,14 +229,26 @@ public:
     real *d_vz, *_d_vz;
     /// device z acceleration
     real *d_az, *_d_az;
-    /// device quadrupoles
-    real *d_qxz, *_d_qxz;
-    real *d_qyz, *_d_qyz;
-    real *d_qzz, *_d_qzz;
     real *d_g_az;
     real *d_az_old, *d_g_az_old; // only for leapfrog integrator
 #endif
 #endif
+
+#if QUADRUPOLE
+    /// device xx component of quadrupole tensor
+    real *d_qxx, *_d_qxx;
+#if DIM > 1
+    /// device xy & yy components of quadrupole tensor
+    real *d_qxy, *_d_qxy;
+    real *d_qyy, *_d_qyy;
+#if DIM == 3
+    /// device xz & yz & zz components of quadrupole tensor
+    real *d_qxz, *_d_qxz;
+    real *d_qyz, *_d_qyz;
+    real *d_qzz, *_d_qzz;
+#endif
+#endif
+#endif // QUADRUPOLE
 
     integer *d_nodeType;
 
@@ -428,6 +442,10 @@ public:
      * @param velocity flag whether velocities should be copied
      * @param acceleration flag whether accelerations should be copied
      */
+
+//#if QUADRUPOLE
+    void copyQuad(To::Target target);
+//#endif
     void copyDistribution(To::Target target=To::device, bool velocity=true, bool acceleration=true,
                           bool includePseudoParticles = false);
 
@@ -471,6 +489,20 @@ public:
     real *d_az;
 #endif
 #endif
+
+
+#if QUADRUPOLE
+    real *d_qxx;
+#if DIM > 1
+    real *d_qxy;
+    real *d_qyy;
+#if DIM == 3
+    real *d_qxz;
+    real *d_qyz;
+    real *d_qzz;
+#endif
+#endif
+#endif // QUADRUPOLE
 
     real *d_rho;
     real *d_e;

@@ -17,7 +17,7 @@ module load lib/hdf5/1.12.0-openmpi-4.1-gnu-8.3
 cd $PBS_O_WORKDIR
 echo $PBS_O_WORKDIR
 
-LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${HOME}/local/lib
+LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
 export CUDA_VISIBLE_DEVICES=0,1,2,3
 export PSM3_MULTI_EP=1
 

@@ -20,12 +20,6 @@ ParticleHandler::ParticleHandler(integer numParticles, integer numNodes) : numPa
     h_vy = _h_vy;
     _h_ay = new real[numParticles]; // numNodes
     h_ay = _h_ay;
-    _h_qxx = new real[numParticles];
-    h_qxx = _h_qxx;
-    _h_qxy = new real[numParticles];
-    h_qxy = _h_qxy;
-    _h_qyy = new real[numParticles];
-    h_qyy = _h_qyy;
     h_g_ay = new real[numParticles]; // numNodes
 #if DIM == 3
     _h_z = new real[numNodes];
@@ -34,15 +28,29 @@ ParticleHandler::ParticleHandler(integer numParticles, integer numNodes) : numPa
     h_vz = _h_vz;
     _h_az = new real[numParticles]; // numNodes
     h_az = _h_az;
+    h_g_az = new real[numParticles]; // numNodes
+#endif
+#endif
+
+#if QUADRUPOLE
+// _h_qxx = new real[numParticles]{1};
+    _h_qxx = new real[numParticles];
+    h_qxx = _h_qxx;
+#if DIM > 1
+    _h_qxy = new real[numParticles];
+    h_qxy = _h_qxy;
+    _h_qyy = new real[numParticles];
+    h_qyy = _h_qyy;
+#if DIM == 3
     _h_qxz = new real[numParticles];
     h_qxz = _h_qxz;
     _h_qyz = new real[numParticles];
     h_qyz = _h_qyz;
     _h_qzz = new real[numParticles];
     h_qzz = _h_qzz;
-    h_g_az = new real[numParticles]; // numNodes
 #endif
 #endif
+#endif // QUADRUPOLE
 
     h_nodeType = new integer[numNodes];
     h_level = new integer[numNodes];
@@ -158,12 +166,6 @@ ParticleHandler::ParticleHandler(integer numParticles, integer numNodes) : numPa
     d_vy = _d_vy;
     cuda::malloc(_d_ay, numParticles); // numNodes
     d_ay = _d_ay;
-    cuda::malloc(_d_qxx, numParticles); // numNodes
-    d_qxx = _d_qxx;
-    cuda::malloc(_d_qxy, numParticles); // numNodes
-    d_qxy = _d_qxy;
-    cuda::malloc(_d_qyy, numParticles); // numNodes
-    d_qyy = _d_qyy;
     cuda::malloc(d_g_ay, numParticles); // numNodes
 #if DIM == 3
     cuda::malloc(_d_z, numNodes);
@@ -173,15 +175,29 @@ ParticleHandler::ParticleHandler(integer numParticles, integer numNodes) : numPa
     d_vz = _d_vz;
     cuda::malloc(_d_az, numParticles); // numNodes
     d_az = _d_az;
+    cuda::malloc(d_g_az, numParticles); // numNodes
+#endif
+#endif
+
+#if QUADRUPOLE
+    cuda::malloc(_d_qxx, numParticles); // numNodes
+    d_qxx = _d_qxx;
+#if DIM > 1
+    cuda::malloc(_d_qxy, numParticles); // numNodes
+    d_qxy = _d_qxy;
+    cuda::malloc(_d_qyy, numParticles); // numNodes
+    d_qyy = _d_qyy;
+#if DIM == 3
     cuda::malloc(_d_qxz, numParticles); // numNodes
     d_qxz = _d_qxz;
     cuda::malloc(_d_qyz, numParticles); // numNodes
     d_qyz = _d_qyz;
     cuda::malloc(_d_qzz, numParticles); // numNodes
     d_qzz = _d_qzz;
-    cuda::malloc(d_g_az, numParticles); // numNodes
 #endif
 #endif
+#endif // QUADRUPOLE
+
     cuda::malloc(d_nodeType, numNodes);
     cuda::malloc(d_level, numNodes);
     cuda::malloc(_d_uid, numParticles);
@@ -288,19 +304,15 @@ ParticleHandler::ParticleHandler(integer numParticles, integer numNodes) : numPa
     ParticlesNS::Kernel::Launch::set(d_particles, d_numParticles, d_numNodes, d_mass, d_x, d_vx, d_ax, d_level, d_uid,
                                      d_materialId, d_sml, d_nnl, d_noi, d_e, d_dedt, d_cs, d_rho, d_p);
 #elif DIM == 2
-    h_particles->set(&numParticles, &numNodes, h_mass, h_x, h_y, h_vx, h_vy, h_ax, h_ay,
-                     h_qxx, h_qxy, h_qyy, h_level, h_uid, h_materialId,
+    h_particles->set(&numParticles, &numNodes, h_mass, h_x, h_y, h_vx, h_vy, h_ax, h_ay, h_level, h_uid, h_materialId,
                      h_sml, h_nnl, h_noi, h_e, h_dedt, h_cs, h_rho, h_p);
     ParticlesNS::Kernel::Launch::set(d_particles, d_numParticles, d_numNodes, d_mass, d_x, d_y, d_vx, d_vy, d_ax, d_ay,
-                                     d_qxx, d_qxy, d_qyy,
                                      d_level, d_uid, d_materialId, d_sml, d_nnl, d_noi, d_e, d_dedt, d_cs, d_rho, d_p);
 #else
     h_particles->set(&numParticles, &numNodes, h_mass, h_x, h_y, h_z, h_vx, h_vy, h_vz, h_ax, h_ay, h_az,
-                     h_qxx, h_qxy, h_qyy, h_qxz, h_qyz, h_qzz,
                      h_level, h_uid, h_materialId, h_sml, h_nnl, h_noi, h_e, h_dedt, h_cs, h_rho, h_p);
     ParticlesNS::Kernel::Launch::set(d_particles, d_numParticles, d_numNodes, d_mass, d_x, d_y, d_z, d_vx, d_vy, d_vz,
-                                     d_ax, d_ay, d_az, d_qxx, d_qxy, d_qyy, d_qxz, d_qyz, d_qzz,
-                                     d_level, d_uid, d_materialId, d_sml,
+                                     d_ax, d_ay, d_az, d_level, d_uid, d_materialId, d_sml,
                                      d_nnl, d_noi, d_e, d_dedt, d_cs, d_rho, d_p);
 #endif
 
@@ -314,6 +326,19 @@ ParticleHandler::ParticleHandler(integer numParticles, integer numNodes) : numPa
     h_particles->setGravity(h_g_ax, h_g_ay, h_g_az);
     ParticlesNS::Kernel::Launch::setGravity(d_particles, d_g_ax, d_g_ay, d_g_az);
 #endif
+
+#if QUADRUPOLE
+#if DIM == 1
+    h_particles->setQuad(h_qxx);
+    ParticlesNS::Kernel::Launch::setQuad(d_particles, d_qxx);
+#elif DIM == 2
+    h_particles->setQuad(h_qxx, h_qxy, h_qyy);
+    ParticlesNS::Kernel::Launch::setQuad(d_particles, d_qxx, d_qxy, d_qyy);
+#else
+    h_particles->setQuad(h_qxx, h_qxy, h_qyy, h_qxz, h_qyz, h_qzz);
+    ParticlesNS::Kernel::Launch::setQuad(d_particles, d_qxx, d_qxy, d_qyy, d_qxz, d_qyz, d_qzz);
+#endif
+#endif //QUADRUPOLE
 
     h_particles->setNodeType(h_nodeType);
     ParticlesNS::Kernel::Launch::setNodeType(d_particles, d_nodeType);
@@ -401,20 +426,28 @@ ParticleHandler::~ParticleHandler() {
     delete [] _h_y;
     delete [] _h_vy;
     delete [] _h_ay;
-    delete [] _h_qxx;
-    delete [] _h_qxy;
-    delete [] _h_qyy;
     delete [] h_g_ay;
 #if DIM == 3
     delete [] _h_z;
     delete [] _h_vz;
     delete [] _h_az;
-    delete [] _h_qxz;
-    delete [] _h_qyz;
-    delete [] _h_qzz;
     delete [] h_g_az;
 #endif
 #endif
+
+#if QUADRUPOLE
+    delete [] _h_qxx;
+#if DIM > 1
+    delete [] _h_qxy;
+    delete [] _h_qyy;
+#if DIM == 3
+    delete [] _h_qxz;
+    delete [] _h_qyz;
+    delete [] _h_qzz;
+#endif
+#endif
+#endif //QUADRUPOLE
+
     delete [] h_nodeType;
     delete [] h_uid;
     delete [] h_materialId;
@@ -443,20 +476,28 @@ ParticleHandler::~ParticleHandler() {
     cuda::free(_d_y);
     cuda::free(_d_vy);
     cuda::free(_d_ay);
-    cuda::free(_d_qxx);
-    cuda::free(_d_qxy);
-    cuda::free(_d_qyy);
     cuda::free(d_g_ay);
 #if DIM == 3
     cuda::free(_d_z);
     cuda::free(_d_vz);
     cuda::free(_d_az);
-    cuda::free(_d_qxz);
-    cuda::free(_d_qyz);
-    cuda::free(_d_qzz);
     cuda::free(d_g_az);
 #endif
 #endif
+
+#if QUADRUPOLE
+    cuda::free(_d_qxx);
+#if DIM > 1
+    cuda::free(_d_qxy);
+    cuda::free(_d_qyy);
+#if DIM == 3
+    cuda::free(_d_qxz);
+    cuda::free(_d_qyz);
+    cuda::free(_d_qzz);
+#endif
+#endif
+#endif // QUADRUPOLE
+
     cuda::free(d_nodeType);
     cuda::free(d_uid);
     cuda::free(d_materialId);
@@ -715,6 +756,21 @@ void ParticleHandler::setPointer(IntegratedParticleHandler *integratedParticleHa
 #endif
     d_uid = integratedParticleHandler->d_uid;
 
+
+#if QUADRUPOLE
+    d_qxx = integratedParticleHandler->d_qxx;
+#if DIM > 1
+    d_qxy = integratedParticleHandler->d_qxy;
+    d_qyy = integratedParticleHandler->d_qyy;
+#if DIM == 3
+    d_qxz = integratedParticleHandler->d_qxz;
+    d_qyz = integratedParticleHandler->d_qyz;
+    d_qzz = integratedParticleHandler->d_qzz;
+#endif
+#endif
+#endif // QUADRUPOLES
+
+
 #if SPH_SIM
     d_rho = integratedParticleHandler->d_rho;
     d_e = integratedParticleHandler->d_e;
@@ -740,16 +796,28 @@ void ParticleHandler::setPointer(IntegratedParticleHandler *integratedParticleHa
                                      d_materialId, d_sml, d_nnl, d_noi, d_e, d_dedt, d_cs, d_rho, d_p);
 #elif DIM == 2
     h_particles->set(&numParticles, &numNodes, h_mass, h_x, h_y, h_vx, h_vy, h_ax, h_ay,
-                     h_qxx, h_qxy, h_qyy, h_level, h_uid, h_materialId,
+                     h_level, h_uid, h_materialId,
                      h_sml, h_nnl, h_noi, h_e, h_dedt, h_cs, h_rho, h_p);
     ParticlesNS::Kernel::Launch::set(d_particles, d_numParticles, d_numNodes, d_mass, d_x, d_y, d_vx, d_vy, d_ax, d_ay,
-                                     d_qxx, d_qxy, d_qyy, d_level, d_uid, d_materialId, d_sml, d_nnl, d_noi, d_e, d_dedt, d_cs, d_rho, d_p);
+                                     d_level, d_uid, d_materialId, d_sml, d_nnl, d_noi, d_e, d_dedt, d_cs, d_rho, d_p);
 #else
-// i don#t think i need the quad terms here, no?
+
     h_particles->set(&numParticles, &numNodes, h_mass, h_x, h_y, h_z, h_vx, h_vy, h_vz, h_ax, h_ay, h_az,
-                     h_qxx, h_qxy, h_qyy, h_qxz, h_qyz, h_qzz,
                      h_level, h_uid, h_materialId, h_sml, h_nnl, h_noi, h_e, h_dedt, h_cs, h_rho, h_p);
     h_particles->setIntegrateDensity(h_drhodt);
+
+#if QUADRUPOLE
+#if DIM == 1
+    h_particles->setQuad(h_qxx);
+    ParticlesNS::Kernel::Launch::setQuad(d_particles, d_qxx);
+#elif DIM == 2
+    h_particles->setQuad(h_qxx, h_qxy, h_qyy);
+    ParticlesNS::Kernel::Launch::setQuad(d_particles, d_qxx, d_qxy, d_qyy);
+#else
+    h_particles->setQuad(h_qxx, h_qxy, h_qyy, h_qxz, h_qyz, h_qzz);
+    ParticlesNS::Kernel::Launch::setQuad(d_particles, d_qxx, d_qxy, d_qyy, d_qxz, d_qyz, d_qzz);
+#endif
+#endif // QUADRUPOLE
 
 #if SPH_SIM
 #if VARIABLE_SML || INTEGRATE_SML
@@ -777,18 +845,25 @@ void ParticleHandler::resetPointer() {
     d_y = _d_y;
     d_vy = _d_vy;
     d_ay = _d_ay;
-    d_qxx = _d_qxx;
-    d_qxy = _d_qxy;
-    d_qyy = _d_qyy;
 #if DIM == 3
     d_z = _d_z;
     d_vz = _d_vz;
     d_az = _d_az;
+#endif
+#endif
+
+#if QUADRUPOLE
+    d_qxx = _d_qxx;
+#if DIM > 1
+    d_qxy = _d_qxy;
+    d_qyy = _d_qyy;
+#if DIM == 3
     d_qxz = _d_qxz;
     d_qyz = _d_qyz;
     d_qzz = _d_qzz;
 #endif
 #endif
+#endif // QUADRUPOLE
 
     d_uid = _d_uid;
 
@@ -815,16 +890,28 @@ void ParticleHandler::resetPointer() {
     ParticlesNS::Kernel::Launch::set(d_particles, d_numParticles, d_numNodes, d_mass, d_x, d_vx, d_ax, d_level, d_uid,
                                      d_materialId, d_sml, d_nnl, d_noi, d_e, d_dedt, d_cs, d_rho, d_p);
 #elif DIM == 2
-    h_particles->set(&numParticles, &numNodes, h_mass, h_x, h_y, h_vx, h_vy, h_ax, h_ay, h_qxx, h_qxy, h_qyy, h_level, h_uid, h_materialId,
+    h_particles->set(&numParticles, &numNodes, h_mass, h_x, h_y, h_vx, h_vy, h_ax, h_ay, h_level, h_uid, h_materialId,
                      h_sml, h_nnl, h_noi, h_e, h_dedt, h_cs, h_rho, h_p);
     ParticlesNS::Kernel::Launch::set(d_particles, d_numParticles, d_numNodes, d_mass, d_x, d_y, d_vx, d_vy, d_ax, d_ay,
-                                     d_qxx, d_qxy, d_qyy,
-                                     d_level, d_uid, d_materialId, d_sml, d_nnl, d_noi, d_e, d_dedt, d_cs, d_rho, d_p);
+                                      d_level, d_uid, d_materialId, d_sml, d_nnl, d_noi, d_e, d_dedt, d_cs, d_rho, d_p);
 #else
     h_particles->set(&numParticles, &numNodes, h_mass, h_x, h_y, h_z, h_vx, h_vy, h_vz, h_ax, h_ay, h_az,
-                     h_qxx, h_qxy, h_qyy, h_qxz, h_qyz, h_qzz,
-                     h_level, h_uid, h_materialId, h_sml, h_nnl, h_noi, h_e, h_dedt, h_cs, h_rho, h_p);
+                      h_level, h_uid, h_materialId, h_sml, h_nnl, h_noi, h_e, h_dedt, h_cs, h_rho, h_p);
     h_particles->setIntegrateDensity(h_drhodt);
+
+
+#if QUADRUPOLE
+#if DIM == 1
+    h_particles->setQuad(h_qxx);
+    ParticlesNS::Kernel::Launch::setQuad(d_particles, d_qxx);
+#elif DIM == 2
+    h_particles->setQuad(h_qxx, h_qxy, h_qyy);
+    ParticlesNS::Kernel::Launch::setQuad(d_particles, d_qxx, d_qxy, d_qyy);
+#else
+    h_particles->setQuad(h_qxx, h_qxy, h_qyy, h_qxz, h_qyz, h_qzz);
+    ParticlesNS::Kernel::Launch::setQuad(d_particles, d_qxx, d_qxy, d_qyy, d_qxz, d_qyz, d_qzz);
+#endif
+#endif // QUADRUPOLE
 
 #if SPH_SIM
 #if VARIABLE_SML || INTEGRATE_SML
@@ -915,17 +1002,29 @@ void ParticleHandler::copyAcceleration(To::Target target, bool includePseudoPart
     cuda::copy(h_ax, d_ax, length, target);
 #if DIM > 1
     cuda::copy(h_ay, d_ay, length, target);
-    cuda::copy(h_qxx, d_qxx, length, target);
-    cuda::copy(h_qxy, d_qxy, length, target);
-    cuda::copy(h_qyy, d_qyy, length, target);
 #if DIM == 3
     cuda::copy(h_az, d_az, length, target);
+#endif
+#endif
+}
+
+
+void ParticleHandler::copyQuad(To::Target target) {
+#if QUADRUPOLE
+    int length = numParticles;
+    cuda::copy(h_qxx, d_qxx, length, target);
+#if DIM > 1
+    cuda::copy(h_qxy, d_qxy, length, target);
+    cuda::copy(h_qyy, d_qyy, length, target);
+#endif
+#if DIM == 3
     cuda::copy(h_qxz, d_qxz, length, target);
     cuda::copy(h_qyz, d_qyz, length, target);
     cuda::copy(h_qzz, d_qzz, length, target);
 #endif
 #endif
 }
+
 
 void ParticleHandler::copyDistribution(To::Target target, bool velocity, bool acceleration, bool includePseudoParticles) {
     copyUid(target);
@@ -971,6 +1070,19 @@ IntegratedParticleHandler::IntegratedParticleHandler(integer numParticles, integ
     cuda::malloc(d_az, numParticles); // numNodes
 #endif
 #endif
+
+#if QUADRUPOLE
+    cuda::malloc(d_qxx, numParticles);
+#if DIM > 1
+    cuda::malloc(d_qxy, numParticles);
+    cuda::malloc(d_qyy, numParticles);
+#if DIM == 3
+    cuda::malloc(d_qxz, numParticles);
+    cuda::malloc(d_qyz, numParticles);
+    cuda::malloc(d_qzz, numParticles);
+#endif
+#endif
+#endif // QUADRUPOLE
 
     cuda::malloc(d_rho, numParticles);
     cuda::malloc(d_e, numParticles);
@@ -1030,6 +1142,20 @@ IntegratedParticleHandler::~IntegratedParticleHandler() {
     cuda::free(d_az);
 #endif
 #endif
+
+
+#if QUADRUPOLE
+    cuda::free(d_qxx);
+#if DIM > 1
+    cuda::free(d_qxy);
+    cuda::free(d_qyy);
+#if DIM == 3
+    cuda::free(d_qxz);
+    cuda::free(d_qyz);
+    cuda::free(d_qzz);
+#endif
+#endif
+#endif // QUADRUPOLE
 
     cuda::free(d_rho);
     cuda::free(d_e);

@@ -248,7 +248,18 @@ void Miluphpc::prepareSimulation() {
     //cuda::copy(particleHandler->h_noi, particleHandler->d_noi, numParticles, To::device);
     //cuda::copy(particleHandler->h_cs, particleHandler->d_cs, numParticles, To::device);
 #endif
-
+#if QUADRUPOLE
+    cuda::copy(particleHandler->h_qxx, particleHandler->d_qxx, numParticles, To::device);
+#if DIM > 1
+    cuda::copy(particleHandler->h_qxy, particleHandler->d_qxy, numParticles, To::device);
+    cuda::copy(particleHandler->h_qyy, particleHandler->d_qyy, numParticles, To::device);
+#if DIM == 3
+    cuda::copy(particleHandler->h_qxz, particleHandler->d_qxz, numParticles, To::device);
+    cuda::copy(particleHandler->h_qyz, particleHandler->d_qyz, numParticles, To::device);
+    cuda::copy(particleHandler->h_qzz, particleHandler->d_qzz, numParticles, To::device);
+#endif
+#endif
+#endif // QUADRUPOLE
     if (simulationParameters.removeParticles) {
         removeParticles();
     }
@@ -720,6 +731,7 @@ real Miluphpc::assignParticles() {
     // ---------------------------------------------------------
     time += arrangeParticleEntries(d_particlesProcess, d_particlesProcessSorted, particleHandler->d_x, d_tempEntry);
     time += arrangeParticleEntries(d_particlesProcess, d_particlesProcessSorted, particleHandler->d_vx, d_tempEntry);
+    //time += arrangeParticleEntries(d_particlesProcess, d_particlesProcessSorted, particleHandler->d_qxx, d_tempEntry);
     if (arrangeAll) {
         time += arrangeParticleEntries(d_particlesProcess, d_particlesProcessSorted, particleHandler->d_ax,
                                        d_tempEntry);
@@ -729,6 +741,8 @@ real Miluphpc::assignParticles() {
 #if DIM > 1
     time += arrangeParticleEntries(d_particlesProcess, d_particlesProcessSorted, particleHandler->d_y, d_tempEntry);
     time += arrangeParticleEntries(d_particlesProcess, d_particlesProcessSorted, particleHandler->d_vy, d_tempEntry);
+    //time += arrangeParticleEntries(d_particlesProcess, d_particlesProcessSorted, particleHandler->d_qxy, d_tempEntry);
+    //time += arrangeParticleEntries(d_particlesProcess, d_particlesProcessSorted, particleHandler->d_qyy, d_tempEntry);
     if (arrangeAll) {
         time += arrangeParticleEntries(d_particlesProcess, d_particlesProcessSorted, particleHandler->d_ay,
                                        d_tempEntry);
@@ -738,6 +752,9 @@ real Miluphpc::assignParticles() {
 #if DIM == 3
     time += arrangeParticleEntries(d_particlesProcess, d_particlesProcessSorted, particleHandler->d_z, d_tempEntry);
     time += arrangeParticleEntries(d_particlesProcess, d_particlesProcessSorted, particleHandler->d_vz, d_tempEntry);
+    //time += arrangeParticleEntries(d_particlesProcess, d_particlesProcessSorted, particleHandler->d_qxz, d_tempEntry);
+    //time += arrangeParticleEntries(d_particlesProcess, d_particlesProcessSorted, particleHandler->d_qyz, d_tempEntry);
+    //time += arrangeParticleEntries(d_particlesProcess, d_particlesProcessSorted, particleHandler->d_qzz, d_tempEntry);
     if (arrangeAll) {
         time += arrangeParticleEntries(d_particlesProcess, d_particlesProcessSorted, particleHandler->d_az,
                                        d_tempEntry);
@@ -747,6 +764,18 @@ real Miluphpc::assignParticles() {
 #endif
 #endif
 
+#if QUADRUPOLE
+    time += arrangeParticleEntries(d_particlesProcess, d_particlesProcessSorted, particleHandler->d_qxx, d_tempEntry);
+#if DIM > 1
+    time += arrangeParticleEntries(d_particlesProcess, d_particlesProcessSorted, particleHandler->d_qxy, d_tempEntry);
+    time += arrangeParticleEntries(d_particlesProcess, d_particlesProcessSorted, particleHandler->d_qyy, d_tempEntry);
+#if DIM == 3
+    time += arrangeParticleEntries(d_particlesProcess, d_particlesProcessSorted, particleHandler->d_qxz, d_tempEntry);
+    time += arrangeParticleEntries(d_particlesProcess, d_particlesProcessSorted, particleHandler->d_qyz, d_tempEntry);
+    time += arrangeParticleEntries(d_particlesProcess, d_particlesProcessSorted, particleHandler->d_qzz, d_tempEntry);
+#endif
+#endif
+#endif // QUADRUPOLE
     if (particleHandler->leapfrog) {
         time += arrangeParticleEntries(d_particlesProcess, d_particlesProcessSorted,
                                        particleHandler->d_ax_old, d_tempEntry);
@@ -800,6 +829,7 @@ real Miluphpc::assignParticles() {
 
     sendParticlesEntry(sendLengths, receiveLengths, particleHandler->d_x, d_tempEntry, d_copyBuffer);
     sendParticlesEntry(sendLengths, receiveLengths, particleHandler->d_vx, d_tempEntry, d_copyBuffer);
+    //sendParticlesEntry(sendLengths, receiveLengths, particleHandler->d_qxx, d_tempEntry, d_copyBuffer);
     if (arrangeAll) {
         sendParticlesEntry(sendLengths, receiveLengths, particleHandler->d_ax, d_tempEntry, d_copyBuffer);
         sendParticlesEntry(sendLengths, receiveLengths, particleHandler->d_g_ax, d_tempEntry, d_copyBuffer);
@@ -807,6 +837,8 @@ real Miluphpc::assignParticles() {
 #if DIM > 1
     sendParticlesEntry(sendLengths, receiveLengths, particleHandler->d_y, d_tempEntry, d_copyBuffer);
     sendParticlesEntry(sendLengths, receiveLengths, particleHandler->d_vy, d_tempEntry, d_copyBuffer);
+    //sendParticlesEntry(sendLengths, receiveLengths, particleHandler->d_qxy, d_tempEntry, d_copyBuffer);
+    //sendParticlesEntry(sendLengths, receiveLengths, particleHandler->d_qyy, d_tempEntry, d_copyBuffer);
     if (arrangeAll) {
         sendParticlesEntry(sendLengths, receiveLengths, particleHandler->d_ay, d_tempEntry, d_copyBuffer);
         sendParticlesEntry(sendLengths, receiveLengths, particleHandler->d_g_ay, d_tempEntry, d_copyBuffer);
@@ -835,6 +867,19 @@ real Miluphpc::assignParticles() {
     }
 
     sendParticlesEntry(sendLengths, receiveLengths, particleHandler->d_uid, d_idIntTempEntry, d_idIntCopyBuffer);
+
+#if QUADRUPOLE
+    sendParticlesEntry(sendLengths, receiveLengths, particleHandler->d_qxx, d_tempEntry, d_copyBuffer);
+#if DIM > 1
+    sendParticlesEntry(sendLengths, receiveLengths, particleHandler->d_qxy, d_tempEntry, d_copyBuffer);
+    sendParticlesEntry(sendLengths, receiveLengths, particleHandler->d_qyy, d_tempEntry, d_copyBuffer);
+#if DIM == 3
+    sendParticlesEntry(sendLengths, receiveLengths, particleHandler->d_qxz, d_tempEntry, d_copyBuffer);
+    sendParticlesEntry(sendLengths, receiveLengths, particleHandler->d_qyz, d_tempEntry, d_copyBuffer);
+    sendParticlesEntry(sendLengths, receiveLengths, particleHandler->d_qzz, d_tempEntry, d_copyBuffer);
+#endif
+#endif
+#endif
 
 #if SPH_SIM
     sendParticlesEntry(sendLengths, receiveLengths, particleHandler->d_sml, d_tempEntry, d_copyBuffer);
@@ -920,6 +965,25 @@ real Miluphpc::assignParticles() {
                                                  (real)0, resetLength);
     time += HelperNS::Kernel::Launch::resetArray(&particleHandler->d_uid[numParticlesLocal],
                                                  (idInteger)0, resetLength);
+
+#if QUADRUPOLE
+    time += HelperNS::Kernel::Launch::resetArray(&particleHandler->d_qxx[numParticlesLocal],
+                                                 (real)0, resetLength);
+#if DIM > 1
+    time += HelperNS::Kernel::Launch::resetArray(&particleHandler->d_qxy[numParticlesLocal],
+                                                 (real)0, resetLength);
+    time += HelperNS::Kernel::Launch::resetArray(&particleHandler->d_qyy[numParticlesLocal],
+                                                 (real)0, resetLength);
+#if DIM == 3
+    time += HelperNS::Kernel::Launch::resetArray(&particleHandler->d_qxz[numParticlesLocal],
+                                                 (real)0, resetLength);
+    time += HelperNS::Kernel::Launch::resetArray(&particleHandler->d_qyz[numParticlesLocal],
+                                                 (real)0, resetLength);
+    time += HelperNS::Kernel::Launch::resetArray(&particleHandler->d_qzz[numParticlesLocal],
+                                                 (real)0, resetLength);
+#endif
+#endif
+#endif // QUADRUPOLE
 
 #if SPH_SIM
     time += HelperNS::Kernel::Launch::resetArray(&particleHandler->d_sml[numParticlesLocal], (real)0, resetLength);
@@ -1827,6 +1891,37 @@ real Miluphpc::parallel_gravity() {
 #endif
 #endif
 
+#if QUADRUPOLE
+    CudaUtils::Kernel::Launch::collectValues(d_particles2SendIndices, particleHandler->d_qxx, d_collectedEntries,
+                                             particleTotalSendLength);
+    sendParticles(d_collectedEntries, &particleHandler->d_qxx[numParticlesLocal], particleSendLengths,
+                  particleReceiveLengths);
+#if DIM > 1
+    CudaUtils::Kernel::Launch::collectValues(d_particles2SendIndices, particleHandler->d_qxy, d_collectedEntries,
+                                             particleTotalSendLength);
+    sendParticles(d_collectedEntries, &particleHandler->d_qxy[numParticlesLocal], particleSendLengths,
+                  particleReceiveLengths);
+    CudaUtils::Kernel::Launch::collectValues(d_particles2SendIndices, particleHandler->d_qyy, d_collectedEntries,
+                                             particleTotalSendLength);
+    sendParticles(d_collectedEntries, &particleHandler->d_qyy[numParticlesLocal], particleSendLengths,
+                  particleReceiveLengths);
+#if DIM == 3
+    CudaUtils::Kernel::Launch::collectValues(d_particles2SendIndices, particleHandler->d_qxz, d_collectedEntries,
+                                             particleTotalSendLength);
+    sendParticles(d_collectedEntries, &particleHandler->d_qxz[numParticlesLocal], particleSendLengths,
+                  particleReceiveLengths);
+    CudaUtils::Kernel::Launch::collectValues(d_particles2SendIndices, particleHandler->d_qyz, d_collectedEntries,
+                                             particleTotalSendLength);
+    sendParticles(d_collectedEntries, &particleHandler->d_qyz[numParticlesLocal], particleSendLengths,
+                  particleReceiveLengths);
+    CudaUtils::Kernel::Launch::collectValues(d_particles2SendIndices, particleHandler->d_qzz, d_collectedEntries,
+                                             particleTotalSendLength);
+    sendParticles(d_collectedEntries, &particleHandler->d_qzz[numParticlesLocal], particleSendLengths,
+                  particleReceiveLengths);
+#endif
+#endif
+#endif // QUADRUPOLE
+
     // mass-entry pseudo-particle exchange
     CudaUtils::Kernel::Launch::collectValues(d_pseudoParticles2SendIndices, particleHandler->d_mass, d_collectedEntries,
                                              pseudoParticleTotalSendLength);
@@ -2483,6 +2578,13 @@ real Miluphpc::parallel_sph() {
                                              particleTotalSendLength);
     sendParticles(d_collectedEntries, &particleHandler->d_ax[numParticlesLocal], particleSendLengths,
                   particleReceiveLengths);
+    // qxx quadrupole particle exchange
+    /**
+    CudaUtils::Kernel::Launch::collectValues(d_particles2SendIndices, particleHandler->d_qxx, d_collectedEntries,
+                                             particleTotalSendLength);
+    sendParticles(d_collectedEntries, &particleHandler->d_qxx[numParticlesLocal], particleSendLengths,
+                  particleReceiveLengths);
+     **/
 #if DIM > 1
     // y-entry particle exchange
     CudaUtils::Kernel::Launch::collectValues(d_particles2SendIndices, particleHandler->d_y, d_collectedEntries,
@@ -2499,6 +2601,17 @@ real Miluphpc::parallel_sph() {
                                              particleTotalSendLength);
     sendParticles(d_collectedEntries, &particleHandler->d_ay[numParticlesLocal], particleSendLengths,
                   particleReceiveLengths);
+    // qxy & qyy
+    /**
+    CudaUtils::Kernel::Launch::collectValues(d_particles2SendIndices, particleHandler->d_qxy, d_collectedEntries,
+                                             particleTotalSendLength);
+    sendParticles(d_collectedEntries, &particleHandler->d_qxy[numParticlesLocal], particleSendLengths,
+                  particleReceiveLengths);
+    CudaUtils::Kernel::Launch::collectValues(d_particles2SendIndices, particleHandler->d_qyy, d_collectedEntries,
+                                             particleTotalSendLength);
+    sendParticles(d_collectedEntries, &particleHandler->d_qyy[numParticlesLocal], particleSendLengths,
+                  particleReceiveLengths);
+    **/
 #if DIM == 3
     // z-entry particle exchange
     CudaUtils::Kernel::Launch::collectValues(d_particles2SendIndices, particleHandler->d_z, d_collectedEntries,
@@ -2515,8 +2628,55 @@ real Miluphpc::parallel_sph() {
                                              particleTotalSendLength);
     sendParticles(d_collectedEntries, &particleHandler->d_az[numParticlesLocal], particleSendLengths,
                   particleReceiveLengths);
+    // qxz & qyz & qzz
+    /**
+    CudaUtils::Kernel::Launch::collectValues(d_particles2SendIndices, particleHandler->d_qxz, d_collectedEntries,
+                                             particleTotalSendLength);
+    sendParticles(d_collectedEntries, &particleHandler->d_qxz[numParticlesLocal], particleSendLengths,
+                  particleReceiveLengths);
+    CudaUtils::Kernel::Launch::collectValues(d_particles2SendIndices, particleHandler->d_qyz, d_collectedEntries,
+                                             particleTotalSendLength);
+    sendParticles(d_collectedEntries, &particleHandler->d_qyz[numParticlesLocal], particleSendLengths,
+                  particleReceiveLengths);
+    CudaUtils::Kernel::Launch::collectValues(d_particles2SendIndices, particleHandler->d_qzz, d_collectedEntries,
+                                             particleTotalSendLength);
+    sendParticles(d_collectedEntries, &particleHandler->d_qzz[numParticlesLocal], particleSendLengths,
+                  particleReceiveLengths);
+    **/
 #endif
 #endif
+
+#if QUADRUPOLE
+    CudaUtils::Kernel::Launch::collectValues(d_particles2SendIndices, particleHandler->d_qxx, d_collectedEntries,
+                                             particleTotalSendLength);
+    sendParticles(d_collectedEntries, &particleHandler->d_qxx[numParticlesLocal], particleSendLengths,
+                  particleReceiveLengths);
+#if DIM > 1
+    CudaUtils::Kernel::Launch::collectValues(d_particles2SendIndices, particleHandler->d_qxy, d_collectedEntries,
+                                             particleTotalSendLength);
+    sendParticles(d_collectedEntries, &particleHandler->d_qxy[numParticlesLocal], particleSendLengths,
+                  particleReceiveLengths);
+    CudaUtils::Kernel::Launch::collectValues(d_particles2SendIndices, particleHandler->d_qyy, d_collectedEntries,
+                                             particleTotalSendLength);
+    sendParticles(d_collectedEntries, &particleHandler->d_qyy[numParticlesLocal], particleSendLengths,
+                  particleReceiveLengths);
+#if DIM == 3
+    CudaUtils::Kernel::Launch::collectValues(d_particles2SendIndices, particleHandler->d_qxz, d_collectedEntries,
+                                             particleTotalSendLength);
+    sendParticles(d_collectedEntries, &particleHandler->d_qxz[numParticlesLocal], particleSendLengths,
+                  particleReceiveLengths);
+    CudaUtils::Kernel::Launch::collectValues(d_particles2SendIndices, particleHandler->d_qyz, d_collectedEntries,
+                                             particleTotalSendLength);
+    sendParticles(d_collectedEntries, &particleHandler->d_qyz[numParticlesLocal], particleSendLengths,
+                  particleReceiveLengths);
+    CudaUtils::Kernel::Launch::collectValues(d_particles2SendIndices, particleHandler->d_qzz, d_collectedEntries,
+                                             particleTotalSendLength);
+    sendParticles(d_collectedEntries, &particleHandler->d_qzz[numParticlesLocal], particleSendLengths,
+                  particleReceiveLengths);
+#endif
+#endif
+#endif // QUADRUPOLE
+
     // mass-entry particle exchange
     CudaUtils::Kernel::Launch::collectValues(d_particles2SendIndices, particleHandler->d_mass, d_collectedEntries,
                                              particleTotalSendLength);
@@ -3077,6 +3237,32 @@ real Miluphpc::removeParticles() {
     time += HelperNS::Kernel::Launch::copyArray(particleHandler->d_az, d_temp, numParticlesLocal);
 #endif
 #endif
+
+#if QUADRUPOLE
+    time += HelperNS::sortArray(particleHandler->d_qxx, d_temp, d_particles2remove, buffer->d_integerBuffer2,
+                                numParticlesLocal);
+    time += HelperNS::Kernel::Launch::copyArray(particleHandler->d_qxx, d_temp, numParticlesLocal);
+#if DIM > 1
+    time += HelperNS::sortArray(particleHandler->d_qxy, d_temp, d_particles2remove, buffer->d_integerBuffer2,
+                                numParticlesLocal);
+    time += HelperNS::Kernel::Launch::copyArray(particleHandler->d_qxy, d_temp, numParticlesLocal);
+    time += HelperNS::sortArray(particleHandler->d_qyy, d_temp, d_particles2remove, buffer->d_integerBuffer2,
+                                numParticlesLocal);
+    time += HelperNS::Kernel::Launch::copyArray(particleHandler->d_qyy, d_temp, numParticlesLocal);
+#if DIM == 3
+    time += HelperNS::sortArray(particleHandler->d_qxz, d_temp, d_particles2remove, buffer->d_integerBuffer2,
+                                numParticlesLocal);
+    time += HelperNS::Kernel::Launch::copyArray(particleHandler->d_qxz, d_temp, numParticlesLocal);
+    time += HelperNS::sortArray(particleHandler->d_qyz, d_temp, d_particles2remove, buffer->d_integerBuffer2,
+                                numParticlesLocal);
+    time += HelperNS::Kernel::Launch::copyArray(particleHandler->d_qyz, d_temp, numParticlesLocal);
+    time += HelperNS::sortArray(particleHandler->d_qzz, d_temp, d_particles2remove, buffer->d_integerBuffer2,
+                                numParticlesLocal);
+    time += HelperNS::Kernel::Launch::copyArray(particleHandler->d_qzz, d_temp, numParticlesLocal);
+#endif
+#endif
+#endif // QUADRUPOLE
+
     time += HelperNS::sortArray(particleHandler->d_mass, d_temp, d_particles2remove, buffer->d_integerBuffer2,
                                 numParticlesLocal);
     time += HelperNS::Kernel::Launch::copyArray(particleHandler->d_mass, d_temp, numParticlesLocal);
@@ -3127,6 +3313,25 @@ real Miluphpc::removeParticles() {
                                                  (real)0, h_particles2remove_counter);
 #endif
 #endif
+#if QUADRUPOLE
+    time += HelperNS::Kernel::Launch::resetArray(&particleHandler->d_qxx[numParticlesLocal-h_particles2remove_counter],
+                                                 (real)0, h_particles2remove_counter);
+#if DIM > 1
+    time += HelperNS::Kernel::Launch::resetArray(&particleHandler->d_qxy[numParticlesLocal-h_particles2remove_counter],
+                                                 (real)0, h_particles2remove_counter);
+    time += HelperNS::Kernel::Launch::resetArray(&particleHandler->d_qyy[numParticlesLocal-h_particles2remove_counter],
+                                                 (real)0, h_particles2remove_counter);
+#if DIM == 3
+    time += HelperNS::Kernel::Launch::resetArray(&particleHandler->d_qxz[numParticlesLocal-h_particles2remove_counter],
+                                                 (real)0, h_particles2remove_counter);
+    time += HelperNS::Kernel::Launch::resetArray(&particleHandler->d_qyz[numParticlesLocal-h_particles2remove_counter],
+                                                 (real)0, h_particles2remove_counter);
+    time += HelperNS::Kernel::Launch::resetArray(&particleHandler->d_qzz[numParticlesLocal-h_particles2remove_counter],
+                                                 (real)0, h_particles2remove_counter);
+#endif
+#endif
+#endif // QUADRUPOLE
+
     time += HelperNS::Kernel::Launch::resetArray(&particleHandler->d_mass[numParticlesLocal-h_particles2remove_counter],
                                                  (real)0, h_particles2remove_counter);
     time += HelperNS::Kernel::Launch::resetArray(&particleHandler->d_uid[numParticlesLocal-h_particles2remove_counter],
@@ -3380,6 +3585,17 @@ real Miluphpc::particles2file(int step) {
         mass.push_back(particleHandler->h_mass[i]);
         particleProc.push_back(subDomainKeyTreeHandler->h_subDomainKeyTree->rank);
         //Logger(INFO) << "mass[" << i << "] = " << mass[i];
+        /**
+#if QUADRUPOLE
+#if DIM == 1
+        qxx.push_back({particleHandler->h_qxx[i]});
+#elif DIM == 2
+        qxx.push_back({particleHandler->h_qxx[i], particleHandler->h_qxy[i], particleHandler->h_qyy[i]});
+#else
+        qxx.push_back({particleHandler->h_qxx[i], particleHandler->h_qxy[i], particleHandler->h_qyy[i],
+        particleHandler->h_qxz[i], particleHandler->h_qyz[i], particleHandler->h_qzz[i]});
+#endif
+#endif // QUADRUPOLE **/
 #if SPH_SIM
         rho.push_back(particleHandler->h_rho[i]);
         p.push_back(particleHandler->h_p[i]);

@@ -8,17 +8,17 @@ CUDA_CALLABLE_MEMBER Particles::Particles() {
 #if DIM == 1
 
 CUDA_CALLABLE_MEMBER Particles::Particles(integer *numParticles, integer *numNodes, real *mass, real *x, real *vx,
-                                          real *ax, real *qxx, integer *level, idInteger *uid, integer *materialId,
+                                          real *ax, integer *level, idInteger *uid, integer *materialId,
                                           real *sml, integer *nnl, integer *noi, real *e, real *dedt, real *cs,
                                           real *rho, real *p) :
                                           numParticles(numParticles), numNodes(numNodes), mass(mass), x(x), vx(vx),
-                                          ax(ax), qxx(qxx), level(level), uid(uid), materialId(materialId), sml(sml),
+                                          ax(ax), level(level), uid(uid), materialId(materialId), sml(sml),
                                           nnl(nnl), noi(noi), e(e), dedt(dedt), cs(cs), rho(rho), p(p) {
 
 }
 
 CUDA_CALLABLE_MEMBER void Particles::set(integer *numParticles, integer *numNodes, real *mass, real *x, real *vx,
-                                         real *ax, real *qxx, integer *level, idInteger *uid, integer *materialId,
+                                         real *ax, integer *level, idInteger *uid, integer *materialId,
                                          real *sml, integer *nnl, integer *noi, real *e, real *dedt,
                                          real *cs, real *rho, real *p) {
 
@@ -28,7 +28,6 @@ CUDA_CALLABLE_MEMBER void Particles::set(integer *numParticles, integer *numNode
     this->x = x;
     this->vx = vx;
     this->ax = ax;
-    this->qxx = qxx;
     this->level = level;
     this->uid = uid;
     this->materialId = materialId;
@@ -46,19 +45,18 @@ CUDA_CALLABLE_MEMBER void Particles::set(integer *numParticles, integer *numNode
 #elif DIM == 2
 
 CUDA_CALLABLE_MEMBER Particles::Particles(integer *numParticles, integer *numNodes, real *mass, real *x, real *y,
-                                          real *vx, real *vy, real *ax, real *ay, real *qxx, real *qyy, real *qxy,
+                                          real *vx, real *vy, real *ax, real *ay,
                                           idInteger *uid, integer *materialId, real *sml, integer *nnl, integer *noi,
                                           real *e, real *dedt, real *cs, real *rho, real *p) :
                                           numParticles(numParticles), numNodes(numNodes),
                                           mass(mass), x(x), y(y), vx(vx), vy(vy), ax(ax), ay(ay),
-                                          qxx(mxx), qyy(myy), qxy(mxy),
                                           uid(uid), materialId(materialId), sml(sml), nnl(nnl), noi(noi),
                                           e(e), dedt(dedt), cs(cs), rho(rho), p(p) {
 
 }
 
 CUDA_CALLABLE_MEMBER void Particles::set(integer *numParticles, integer *numNodes, real *mass, real *x, real *y,
-                                         real *vx, real *vy, real *ax, real *ay, real *qxx, real *qyy, real *qxy,
+                                         real *vx, real *vy, real *ax, real *ay,
                                          integer *level, idInteger *uid, integer *materialId, real *sml, integer *nnl,
                                          integer *noi, real *e, real *dedt, real *cs, real *rho, real *p) {
 
@@ -71,9 +69,6 @@ CUDA_CALLABLE_MEMBER void Particles::set(integer *numParticles, integer *numNode
     this->vy = vy;
     this->ax = ax;
     this->ay = ay;
-    this->qxx = qxx;
-    this->qyy = qyy;
-    this->qxy = qxy;
     this->level = level;
     this->uid = uid;
     this->materialId = materialId;
@@ -91,12 +86,10 @@ CUDA_CALLABLE_MEMBER void Particles::set(integer *numParticles, integer *numNode
 
 CUDA_CALLABLE_MEMBER Particles::Particles(integer *numParticles, integer *numNodes, real *mass, real *x, real *y,
                                           real *z, real *vx, real *vy, real *vz, real *ax, real *ay, real *az,
-                                          real *qxx, real *qxy, real *qyy, real *qxz, real *qyz, real *qzz,
                                           idInteger *uid, integer *materialId, real *sml, integer *nnl, integer *noi,
                                           real *e, real *dedt, real *cs, real *rho, real *p) :
                                           numParticles(numParticles), numNodes(numNodes), mass(mass), x(x), y(y), z(z),
-                                          vx(vx), vy(vy), vz(vz), ax(ax), ay(ay), az(az),
-                                          qxx(qxx), qxy(qxy), qyy(qyy), qxz(qxz), qyz(qyz), qzz(qzz), uid(uid),
+                                          vx(vx), vy(vy), vz(vz), ax(ax), ay(ay), az(az), uid(uid),
                                           materialId(materialId), sml(sml), nnl(nnl), noi(noi), e(e), dedt(dedt),
                                           cs(cs), rho(rho), p(p) {
 
@@ -104,7 +97,6 @@ CUDA_CALLABLE_MEMBER Particles::Particles(integer *numParticles, integer *numNod
 
 CUDA_CALLABLE_MEMBER void Particles::set(integer *numParticles, integer *numNodes, real *mass, real *x, real *y,
                                          real *z, real *vx, real *vy, real *vz, real *ax, real *ay, real *az,
-                                         real *qxx, real *qxy, real *qyy, real *qxz, real *qyz, real *qzz,
                                          integer *level, idInteger *uid, integer *materialId, real *sml, integer *nnl,
                                          integer *noi, real *e, real *dedt, real *cs, real *rho, real *p) {
 
@@ -120,12 +112,6 @@ CUDA_CALLABLE_MEMBER void Particles::set(integer *numParticles, integer *numNode
     this->ax = ax;
     this->ay = ay;
     this->az = az;
-    this->qxx = qxx;
-    this->qxy = qxy;
-    this->qyy = qyy;
-    this->qxz = qxz;
-    this->qyz = qyz;
-    this->qzz = qzz;
     this->level = level;
     this->uid = uid;
     this->materialId = materialId;
@@ -156,6 +142,29 @@ CUDA_CALLABLE_MEMBER void Particles::set(integer *numParticles, integer *numNode
         this->g_az = g_az;
     }
 #endif
+
+#if QUADRUPOLE
+#if DIM == 1
+    CUDA_CALLABLE_MEMBER void Particles::setQuad(real *qxx) {
+        this->qxx = qxx;
+    }
+#elif DIM == 2
+    CUDA_CALLABLE_MEMBER void Particles::setQuad(real *qxx, real *qxy, real *qyy) {
+        this->qxx = qxx;
+        this->qxy = qxy;
+        this->qyy = qyy;
+    }
+#else
+    CUDA_CALLABLE_MEMBER void Particles::setQuad(real *qxx, real *qxy, real *qyy, real *qxz, real *qyz, real *qzz) {
+        this->qxx = qxx;
+        this->qxy = qxy;
+        this->qyy = qyy;
+        this->qxz = qxz;
+        this->qyz = qyz;
+        this->qzz = qzz;
+    }
+#endif
+#endif // QUADRUPOLE
 
 #if DIM == 1
     CUDA_CALLABLE_MEMBER void Particles::setLeapfrog(real *ax_old, real *g_ax_old) {
@@ -587,44 +596,44 @@ namespace ParticlesNS {
 #if DIM == 1
 
         __global__ void set(Particles *particles, integer *numParticles, integer *numNodes, real *mass, real *x,
-                            real *vx, real *ax, real *qxx, integer *level, idInteger *uid, integer *materialId,
+                            real *vx, real *ax, integer *level, idInteger *uid, integer *materialId,
                             real *sml, integer *nnl, integer *noi, real *e, real *dedt, real *cs, real *rho, real *p) {
 
-            particles->set(numParticles, numNodes, mass, x, vx, ax, qxx, level, uid, materialId, sml, nnl, noi, e,
+            particles->set(numParticles, numNodes, mass, x, vx, ax, level, uid, materialId, sml, nnl, noi, e,
                            dedt, cs, rho, p);
 
         }
 
         void Launch::set(Particles *particles, integer *numParticles, integer *numNodes, real *mass, real *x, real *vx,
-                         real *ax, real *qxx, integer *level, idInteger *uid, integer *materialId, real *sml,
+                         real *ax, integer *level, idInteger *uid, integer *materialId, real *sml,
                          integer *nnl, integer *noi, real *e, real *dedt, real *cs, real *rho, real *p) {
 
             ExecutionPolicy executionPolicy(1, 1);
             cuda::launch(false, executionPolicy, ::ParticlesNS::Kernel::set, particles, numParticles, numNodes, mass,
-                         x, vx, ax, qxx, level, uid, materialId, sml, nnl, noi, e, dedt, cs, rho, p);
+                         x, vx, ax, level, uid, materialId, sml, nnl, noi, e, dedt, cs, rho, p);
 
         }
 
 #elif DIM == 2
 
         __global__ void set(Particles *particles, integer *numParticles, integer *numNodes, real *mass, real *x,
-                            real *y, real *vx, real *vy, real *ax, real *ay, real *qxx, real *qxy, real *qyy, integer *level,
+                            real *y, real *vx, real *vy, real *ax, real *ay, integer *level,
                             idInteger *uid, integer *materialId, real *sml, integer *nnl, integer *noi, real *e,
                             real *dedt, real *cs, real *rho, real *p) {
 
-            particles->set(numParticles, numNodes, mass, x, y, vx, vy, ax, ay, qxx, qxy, qyy, level, uid, materialId, sml,
+            particles->set(numParticles, numNodes, mass, x, y, vx, vy, ax, ay, level, uid, materialId, sml,
                            nnl, noi, e, dedt, cs, rho, p);
 
         }
 
         void Launch::set(Particles *particles, integer *numParticles, integer *numNodes, real *mass, real *x, real *y,
-                         real *vx, real *vy, real *ax, real *ay, real *qxx, real *qxy, real *qyy, integer *level, idInteger *uid,
+                         real *vx, real *vy, real *ax, real *ay, integer *level, idInteger *uid,
                          integer *materialId, real *sml, integer *nnl, integer *noi, real *e, real *dedt, real *cs,
                          real *rho, real *p) {
 
             ExecutionPolicy executionPolicy(1, 1);
             cuda::launch(false, executionPolicy, ::ParticlesNS::Kernel::set, particles, numParticles, numNodes,
-                         mass, x, y, vx, vy, ax, ay, qxx, qxy, qyy, level, uid, materialId, sml, nnl, noi, e, dedt,
+                         mass, x, y, vx, vy, ax, ay, level, uid, materialId, sml, nnl, noi, e, dedt,
                          cs, rho, p);
 
         }
@@ -634,26 +643,22 @@ namespace ParticlesNS {
 
         __global__ void set(Particles *particles, integer *numParticles, integer *numNodes, real *mass, real *x,
                             real *y, real *z, real *vx, real *vy, real *vz, real *ax, real *ay, real *az,
-                            real *qxx, real *qxy, real *qyy, real *qxz, real *qyz, real *qzz,
                             integer *level, idInteger *uid, integer *materialId, real *sml, integer *nnl,
                             integer *noi, real *e, real *dedt, real *cs, real *rho, real *p) {
 
             particles->set(numParticles, numNodes, mass, x, y, z, vx, vy, vz, ax, ay, az,
-                           qxx, qxy, qyy, qxz, qyz, qzz,
                            level, uid, materialId, sml, nnl, noi, e, dedt, cs, rho, p);
 
         }
 
         void Launch::set(Particles *particles, integer *numParticles, integer *numNodes, real *mass, real *x, real *y,
                          real *z, real *vx, real *vy, real *vz, real *ax, real *ay, real *az,
-                         real *qxx, real *qxy, real *qyy, real *qxz, real *qyz, real *qzz,
                          integer *level, idInteger *uid, integer *materialId, real *sml, integer *nnl, integer *noi, real *e,
                          real *dedt, real *cs, real *rho, real *p) {
 
             ExecutionPolicy executionPolicy(1, 1);
             cuda::launch(false, executionPolicy, ::ParticlesNS::Kernel::set, particles, numParticles, numNodes,
                          mass, x, y, z, vx, vy, vz, ax, ay, az,
-                         qxx, qxy, qyy, qxz, qyz, qzz,
                          level, uid, materialId, sml, nnl, noi, e, dedt, cs, rho, p);
             //setKernel<<<1, 1>>>(particles, count, mass, x, y, z, vx, vy, vz, ax, ay, az);
 
@@ -698,6 +703,40 @@ namespace ParticlesNS {
             }
         }
 #endif
+
+#if QUADRUPOLE
+#if DIM == 1
+    __global__ void setQuad(Particles *particles, real *qxx) {
+        particles->setQuad(qxx);
+    }
+    namespace Launch {
+        void setQuad(Particles *particles, real *qxx) {
+            ExecutionPolicy executionPolicy(1, 1);
+            cuda::Launch(false, executionPolicy, ::ParticlesNS::Kernel::setQuad, particles, qxx);
+        }
+    }
+#elif DIM == 2
+    __global__ void setQuad(Particles *particles, real *qxx, real *qxy, real *qyy) {
+        particles->setQuad(qxx, qxy, qyy);
+    }
+    namespace Launch {
+        void setQuad(Particles *particles, real *qxx, real *qxy, real *qyy) {
+            ExecutionPolicy executionPolicy(1, 1);
+            cuda::Launch(false, executionPolicy, ::ParticlesNS::Kernel::setQuad, particles, qxx, qxy, qyy);
+        }
+    }
+#else
+    __global__ void setQuad(Particles *particles, real *qxx, real *qxy, real *qyy, real *qxz, real *qyz, real *qzz) {
+        particles->setQuad(qxx, qxy, qyy, qxz, qyz, qzz);
+    }
+    namespace Launch {
+        void setQuad(Particles *particles, real *qxx, real *qxy, real *qyy, real *qxz, real *qyz, real *qzz) {
+            ExecutionPolicy executionPolicy(1, 1);
+            cuda::launch(false, executionPolicy, ::ParticlesNS::Kernel::setQuad, particles, qxx, qxy, qyy, qxz, qyz, qzz);
+        }
+    }
+#endif
+#endif //QUADRUPOLE
 
 #if DIM == 1
         __global__ void setLeapfrog(Particles *particles, real *ax_old, real *g_ax_old) {
@@ -1040,6 +1079,29 @@ CUDA_CALLABLE_MEMBER void IntegratedParticles::set(idInteger *uid, real *rho, re
 
 #endif
 
+#if QUADRUPOLE
+#if DIM == 1
+CUDA_CALLABLE_MEMBER void IntegratedParticles::setQuad(real *qxx) {
+    this->qxx =  qxx;
+}
+#elif DIM == 2
+CUDA_CALLABLE_MEMBER void IntegratedParticles::setQuad(real *qxx, real *qxy, real *qyy) {
+    this->qxx = qxx;
+    this->qxy = qxy;
+    this->qyy = qyy;
+}
+#else
+CUDA_CALLABLE_MEMBER void IntegratedParticles::setQuad(real *qxx, real *qxy, real *qyy, real *qxz, real *qyz, real *qzz) {
+    this->qxx = qxx;
+    this->qxy = qxy;
+    this->qyy = qyy;
+    this->qxz = qxz;
+    this->qyz = qyz;
+    this->qzz = qzz;
+}
+#endif
+#endif // QUADRUPOLE
+
 //CUDA_CALLABLE_MEMBER void IntegratedParticles::setLevel(integer *level) {
 //    this->level = level;
 //}
@@ -1081,6 +1143,19 @@ CUDA_CALLABLE_MEMBER void IntegratedParticles::reset(integer index) {
     az[index] = 0.;
 #endif
 #endif
+
+#if QUADRUPOLE
+    qxx[index] = 0.;
+#if DIM > 1
+    qxy[index] = 0.;
+    qyy[index] = 0.;
+#if DIM == 3
+    qxz[index] = 0.;
+    qyz[index] = 0.;
+    qzz[index] = 0.;
+#endif
+#endif
+#endif // QUADRUPOLE
 
 #if SPH_SIM
     e[index] = 0.;
@@ -1146,6 +1221,38 @@ namespace IntegratedParticlesNS {
         }
 
 #endif
+
+#if QUADRUPOLE
+#if DIM == 1
+    __global__ void setQuad(IntegratedParticles *integratedParticles, real *qxx) {
+            integratedParticles->setQuad(qxx);
+    }
+
+    void Launch::setQuad(IntegratedParticles *integratedParticles, real *qxx) {
+        ExecutionPolicy executionPolicy(1, 1);
+        cuda::launch(false, executionPolicy, ::IntegratedParticlesNS::Kernel::setQuad, integratedParticles, qxx);
+    }
+#elif DIM == 2
+    __global__ void setQuad(IntegratedParticles *integratedParticles, real *qxx, real *qxy, real *qyy) {
+            integratedParticles->setQuad(qxx, qxy, qyy);
+    }
+
+    void Launch::setQuad(IntegratedParticles *integratedParticles, real *qxx, real *qxy, real *qyy) {
+        ExecutionPolicy executionPolicy(1, 1);
+        cuda::launch(false, executionPolicy, ::IntegratedParticlesNS::Kernel::setQuad, integratedParticles, qxx, qxy, qyy);
+    }
+#else
+    __global__ void setQuad(IntegratedParticles *integratedParticles, real *qxx, real *qxy, real *qyy, real *qxz, real *qyz, real *qzz) {
+            integratedParticles->setQuad(qxx, qxy, qyy, qxz, qyz, qzz);
+    }
+
+    void Launch::setQuad(IntegratedParticles *integratedParticles, real *qxx, real *qxy, real *qyy, real *qxz, real *qyz, real *qzz) {
+        ExecutionPolicy executionPolicy(1, 1);
+        cuda::launch(false, executionPolicy, ::IntegratedParticlesNS::Kernel::setQuad, integratedParticles, qxx, qxy, qyy, qxz, qyz, qzz);
+    }
+#endif
+#endif // QUADRUPOLE
+
 
         //__global__ void setLevel(IntegratedParticles *integratedParticles, integer *level) {
         //    integratedParticles->setLevel(level);

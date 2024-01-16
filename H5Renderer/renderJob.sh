@@ -23,7 +23,7 @@ export OMP_NUM_THREADS=20
 ulimit -s 200000
 
 # debugging output
-cd /home/tu/tu_tu/tu_zxogc36/git/miluphpc/H5Renderer/
+cd /home/azzam/git/miluphpc/H5Renderer
 echo "current directory: $(pwd)"
 
 

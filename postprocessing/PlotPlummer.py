@@ -17,7 +17,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Plot conservation of energy and angular momentum for Plummer test case.")
     parser.add_argument("--data", "-d", metavar="str", type=str, help="input directory",
-                        nargs="?", default="/beegfs/work/tu_zxogc36/hpc_output")
+                        nargs="?", default="~/git/miluphpc/output")
     parser.add_argument("--output", "-o", metavar="str", type=str, help="output directory",
                         nargs="?", default="plummer_")
     parser.add_argument("--angular_momentum", "-L", action="store_true", help="plot angular momentum (defaul: energy and mass)")

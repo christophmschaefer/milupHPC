@@ -1,7 +1,7 @@
 ; IO RELATED
 ; ------------------------------------------------------
 ; output directory (will be created if it does not exist)
-directory /beegfs/work/tu_zxogc36/hpc_output/
+directory output/
 
 ; outputRank (-1 corresponds to all)
 outputRank -1
@@ -38,7 +38,7 @@ timeEnd 25.0
 sfc 0
 
 ; theta-criterion for Barnes-Hut (approximative gravity)
-theta 0.5
+theta 1.0
 ; smoothing parameter for gravitational forces
 ;smoothing 0.032
 ;smoothing 0.001024

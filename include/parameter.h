@@ -32,7 +32,7 @@ typedef int idInteger;
  * * `SAFETY_LEVEL 2`: more safety measures, including assertions
  * * `SAFETY_LEVEL 3`: many security measures, including all assertions
  */
-#define SAFETY_LEVEL 1
+#define SAFETY_LEVEL 2
 
 /// Dimension of the problem
 #define DIM 3
@@ -263,7 +263,18 @@ struct Entry
         z,
 #endif
 #endif
-        mass
+        mass,
+/**
+#if QUADRUPOLE
+//#if DIM == 3
+    qxx,
+#if DIM > 1
+    qxy, qyy,
+#if DIM == 3
+    qxz, qyz, qzz
+#endif
+#endif
+#endif // QUADRUPOLE **/
     };
     Name t_;
     Entry(Name t) : t_(t) {}

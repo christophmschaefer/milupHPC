@@ -263,6 +263,9 @@ namespace Gravity {
             real pz, az, dz;
 #endif
 #endif
+#if QUADRUPOLE
+            real fq, coeff, ax_q, ay_q, az_q, r7, r5, dx_q, dy_q, dz_q;
+#endif
             real sml;
             real thetasq = theta*theta;
 
@@ -363,34 +366,78 @@ namespace Gravity {
 #endif
 #endif
 
+
 #if QUADRUPOLE
-                                real fq;
 #if DIM == 3
 
-#if SI_UNITS
+//#if SI_UNITS
                                 //check the sign maybe i need SI_UNITS flag as well
-                                fq = Constants::G / (distance * distance * distance * distance * distance);
-#else
-                                fq = 1. / (distance * distance * distance * distance * distance);
+                                dx_q = px - particles->x[child];
+
+                                dy_q = py - particles->y[child];
+
+                                dz_q = pz - particles->z[child];
+
+                                r7 = 1. / (distance * distance * distance * distance * distance * distance * distance);
+                                r5 = 1. / (distance * distance * distance * distance * distance);
+                                //fq = particles->mass[child]*Constants::G / (distance * distance * distance * distance * distance);
+//#else
+                                //fq = particles->mass[child] / (distance * distance * distance * distance * distance);
+//#endif
+                                ax_q = 2.*dx_q * particles->qxx[child] * r5 + 2.*dy_q * particles->qxy[child] * r5 + 2.*dz_q * particles->qxz[child] * r5
+                                        - 5.* dx_q*dx_q*dx_q * particles->qxx[child] * r7 - 5.* dx_q*dy_q*dy_q * particles->qyy[child] * r7
+                                        - 5.* dx_q*dz_q*dz_q * particles->qzz[child] * r7 - 10.* dx_q*dx_q*dy_q * particles->qxy[child] * r7
+                                        - 10.* dx_q*dy_q*dz_q * particles->qyz[child] * r7 - 10.* dx_q*dx_q*dz_q * particles->qxz[child] * r7;
+//#if DIM > 1
+                                //ay += fq*(dx * particles->qxy[child] + dy * particles->qyy[child] + dz * particles->qyz[child]);
+                                ay_q = 2.*dy_q * particles->qyy[child] * r5 + 2.*dx_q * particles->qxy[child] * r5 + 2.*dz_q * particles->qyz[child] * r5
+                                          - 5.* dy_q*dy_q*dy_q * particles->qyy[child] * r7 - 5.* dy_q*dz_q*dz_q * particles->qzz[child] * r7
+                                          - 5.* dy_q*dx_q*dx_q * particles->qxx[child] * r7 - 10.* dy_q*dy_q*dz_q * particles->qyz[child] * r7
+                                          - 10.* dx_q*dy_q*dz_q * particles->qxz[child] * r7 - 10.* dy_q*dy_q*dx_q * particles->qxy[child] * r7 ;
+//#endif
+//#if DIM == 3
+                                az_q = 2.*dz_q * particles->qzz[child] * r5 + 2.*dx_q * particles->qxz[child] * r5 + 2.*dy_q * particles->qyz[child] * r5
+                                          - 5.* dz_q*dz_q*dz_q * particles->qzz[child] * r7 - 5.* dz_q*dx_q*dx_q * particles->qxx[child] * r7
+                                          - 5.* dz_q*dy_q*dy_q * particles->qyy[child] * r7 - 10.* dz_q*dz_q*dx_q * particles->qxz[child] * r7
+                                          - 10.* dx_q*dy_q*dz_q * particles->qxy[child] * r7 - 10.* dz_q*dz_q*dy_q * particles->qyz[child] * r7;
+
+                                ax += 0.5 * particles->mass[child] * particles->mass[i] * ax_q;
+
+                                ay += 0.5 * particles->mass[child] * particles->mass[i] * ay_q;
+
+                                az += 0.5 * particles->mass[child] * particles->mass[i] * az_q;
+
+
+                                //az += fq*(dx * particles->qxz[child] + dy * particles->qyz[child] + dz * particles->qzz[child]);
+
+                                //coeff = dx*dx*particles->qxx[child] + dy*dy*particles->qyy[child] + dz*dz*particles->qzz[child]
+                                  //           + 2.*dx*dy*particles->qxy[child] + 2.*dx*dz*particles->qxz[child] + 2.*dy*dz*particles->qyz[child];
+
+                                //fq *= -5. *coeff/(2. * distance * distance);
+//#endif
+                                //ax += (fq + f) * dx;
+                                //ax += f*dx;
+                                //ay += f*dy;
+                                //az += f*dz;
+//#if DIM > 1
+                                //ay += (fq + f) * dy;
+//#if DIM == 3
+                                //az += (fq + f) * dz;
+//#endif
 #endif
-                                ax += fq*(dx * particles->qxx[child] + dy * particles->qxy[child] + dz * particles->qxz[child]);
-
-                                ay += fq*(dx * particles->qxy[child] + dy * particles->qyy[child] + dz * particles->qyz[child]);
-
-                                az += fq*(dx * particles->qxz[child] + dy * particles->qyz[child] + dz * particles->qzz[child]);
-
-                                real coeff = dx*dx*particles->qxx[child] + dy*dy*particles->qyy[child] + dz*dz*particles->qzz[child]
-                                             + 2.*dx*dy*particles->qxy[child] + 2.*dx*dz*particles->qxz[child] + 2.*dy*dz*particles->qyz[child];
-
-                                fq *= -5./(2. * distance * distance)*coeff;
-
-                                ax += (fq + f) * dx;
-
-                                ay += (fq + f) * dy;
-
-                                az += (fq + f) * dz;
+#endif
+/**
+//#if DIM == 3
+                                ax += f*dx;
+#if DIM > 1
+                                ay += f*dy;
+#if DIM == 3
+                                az += f*dz;
 #endif
 #endif
+#endif **/
+
+
                                 // gravitational potential energy
                                 if (potentialEnergy) {
 #if SI_UNITS

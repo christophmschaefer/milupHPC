@@ -1,7 +1,7 @@
 ; IO RELATED
 ; ------------------------------------------------------
 ; output directory (will be created if it does not exist)
-directory bb/
+directory output/
 
 ; outputRank (-1 corresponds to all)
 outputRank -1
@@ -23,7 +23,7 @@ particlesSent2H5 true
 ; ------------------------------------------------------
 ; integrator selection
 ; explicit euler [0], predictor-corrector euler [1]
-integrator 1
+integrator 0
 ; initial time step
 timeStep 1e-4
 ; max time step allowed
@@ -76,7 +76,7 @@ particleMemoryContingent 1.0
 ; calculate angular momentum (and save to output file)
 calculateAngularMomentum true
 ; calculate (total) energy (and save to output file)
-calculateEnergy true
+calculateEnergy false
 ; calculate center of mass (and save to output file)
 calculateCenterOfMass true
 
@@ -87,7 +87,7 @@ calculateCenterOfMass true
 ; force version for gravity (use [2])
 ; burtscher [0], burtscher without presorting [1], miluphcuda with presorting [2],
 ; miluphcuda without presorting [3], miluphcuda shared memory (experimental) [4]
-gravityForceVersion 0
+gravityForceVersion 2
 ; fixed radius NN version for SPH (use [0])
 ; normal [0], brute-force [1], shared-memory [2], within-box [3]
 sphFixedRadiusNNVersion 0

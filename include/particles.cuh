@@ -73,9 +73,7 @@ public:
     /// (pointer to) y acceleration (array)
     real *ay;
     real *ay_old;
-    real *qxx;
-    real *qxy;
-    real *qyy;
+
 #if DIM == 3
     /// (pointer to) z position (array)
     real *z;
@@ -84,13 +82,6 @@ public:
     /// (pointer to) z acceleration (array)
     real *az;
     real *az_old;
-
-//#ifdef QUADRUPOLE
-    //real *mxx;
-    //real *mxy;
-    real *qxz;
-    real *qyz;
-    real *qzz;
 #endif
 #endif
 
@@ -108,6 +99,24 @@ public:
 #endif
 #endif
 
+#if QUADRUPOLE
+    /// (pointer to) xx component of the quadrupole tensor (array)
+    real *qxx;
+#if DIM > 1
+    /// (pointer to) xy component of the quadrupole tensor (array)
+    real *qxy;
+    /// (pointer to) yy component of the quadrupole tensor (array)
+    real *qyy;
+#if DIM == 3
+    /// (pointer to) xz component of the quadrupole tensor (array)
+    real *qxz;
+    /// (pointer to) yz component of the quadrupole tensor (array)
+    real *qyz;
+    /// (pointer to) zz component of the quadrupole tensor (array)
+    real *qzz;
+#endif
+#endif
+#endif // QUADRUPOLE
 
     /// (pointer to) node type
     integer *nodeType;
@@ -277,13 +286,13 @@ public:
 #elif DIM == 2
 
     CUDA_CALLABLE_MEMBER Particles(integer *numParticles, integer *numNodes, real *mass, real *x, real *y, real *vx,
-                                   real *vy, real *ax, real *ay, real *qxx, real *qxy, real *qyy, idInteger *uid,
+                                   real *vy, real *ax, real *ay, idInteger *uid,
                                    integer *materialId, real *sml, integer *nnl, integer *noi, real *e, real *dedt,
                                    real *cs, real *rho, real *p);
 
 
     CUDA_CALLABLE_MEMBER void set(integer *numParticles, integer *numNodes, real *mass, real *x, real *y, real *vx,
-                                  real *vy, real *ax, real *ay, real *qxx, real *qxy, real *qyy,
+                                  real *vy, real *ax, real *ay,
                                   integer *level, idInteger *uid, integer *materialId, real *sml, integer *nnl,
                                   integer *noi, real *e, real *dedt, real *cs, real *rho, real *p);
 #else
@@ -316,7 +325,6 @@ public:
      */
     CUDA_CALLABLE_MEMBER Particles(integer *numParticles, integer *numNodes, real *mass, real *x, real *y, real *z,
                                    real *vx, real *vy, real *vz, real *ax, real *ay, real *az,
-                                   real *qxx, real *qxy, real *qyy, real *qxz, real *qyz, real *qzz,
                                    idInteger *uid, integer *materialId, real *sml,
                                    integer *nnl, integer *noi, real *e, real *dedt,
                                    real *cs, real *rho, real *p);
@@ -352,9 +360,7 @@ public:
      * @param p pressure \f$ p \f$ entry
      */
     CUDA_CALLABLE_MEMBER void set(integer *numParticles, integer *numNodes, real *mass, real *x, real *y, real *z,
-                                  real *vx, real *vy, real *vz, real *ax, real *ay, real *az,
-                                  real *qxx, real *qxy, real *qyy, real *qxz, real *qyz, real *qzz,
-                                  integer *level, idInteger *uid, integer *materialId,
+                                  real *vx, real *vy, real *vz, real *ax, real *ay, real *az, integer *level, idInteger *uid, integer *materialId,
                                   real *sml, integer *nnl, integer *noi, real *e, real *dedt, real *cs,
                                   real *rho, real *p);
 #endif
@@ -375,6 +381,16 @@ public:
      */
     CUDA_CALLABLE_MEMBER void setGravity(real *g_ax, real *g_ay, real *g_az);
 #endif
+
+#if QUADRUPOLE
+#if DIM == 1
+    CUDA_CALLABLE_MEMBER void setQuad(real *qxx);
+#elif DIM == 2
+    CUDA_CALLABLE_MEMBER void setQuad(real *qxx, real *qxy, real *qyy);
+#else
+    CUDA_CALLABLE_MEMBER void setQuad(real *qxx, real *qxy, real *qyy, real *qxz, real *qyz, real *qzz);
+#endif
+#endif //QUADRUPOLE
 
 #if DIM == 1
     CUDA_CALLABLE_MEMBER void setLeapfrog(real *ax_old, real *g_ax_old);
@@ -620,14 +636,14 @@ namespace ParticlesNS {
 #elif DIM == 2
 
         __global__ void set(Particles *particles, integer *numParticles, integer *numNodes, real *mass, real *x,
-                            real *y, real *vx, real *vy, real *ax, real *ay, real *qxx, real *qxy, real *qyy,
-                            integer *level,idInteger *uid, integer *materialId, real *sml, integer *nnl, integer *noi,
+                            real *y, real *vx, real *vy, real *ax, real *ay, integer *level,
+                            idInteger *uid, integer *materialId, real *sml, integer *nnl, integer *noi,
                             real *e, real *dedt, real *cs, real *rho, real *p);
 
         namespace Launch {
 
             void set(Particles *particles, integer *numParticles, integer *numNodes, real *mass, real *x, real *y,
-                     real *vx, real *vy, real *ax, real *ay, real *qxx, real *qxy, real *qyy,
+                     real *vx, real *vy, real *ax, real *ay,
                      integer *level, idInteger *id, integer *materialId, real *sml, integer *nnl, integer *noi,
                      real *e, real *dedt, real *cs, real *rho, real *p);
         }
@@ -635,19 +651,15 @@ namespace ParticlesNS {
 #else
 
         __global__ void set(Particles *particles, integer *numParticles, integer *numNodes, real *mass, real *x,
-                            real *y, real *z, real *vx, real *vy, real *vz, real *ax, real *ay, real *az,
-                            real *qxx, real *qxy, real *qyy, real *qxz, real *qyz, real *qzz,
-                            integer *level, idInteger *uid, integer *materialId, real *sml,
-                            integer *nnl, integer *noi, real *e,
+                            real *y, real *z, real *vx, real *vy, real *vz, real *ax, real *ay, real *az, integer *level,
+                            idInteger *uid, integer *materialId, real *sml, integer *nnl, integer *noi, real *e,
                             real *dedt, real *cs, real *rho, real *p);
 
         namespace Launch {
 
             void set(Particles *particles, integer *numParticles, integer *numNodes, real *mass, real *x, real *y,
-                     real *z, real *vx, real *vy, real *vz, real *ax, real *ay, real *az,
-                     real *qxx, real *qxy, real *qyy, real *qxz, real *qyz, real *qzz,
-                     integer *level, idInteger *uid, integer *materialId, real *sml,
-                     integer *nnl, integer *noi, real *e, real *dedt, real *cs, real *rho, real *p);
+                     real *z, real *vx, real *vy, real *vz, real *ax, real *ay, real *az, integer *level,
+                     idInteger *uid, integer *materialId, real *sml, integer *nnl, integer *noi, real *e, real *dedt, real *cs, real *rho, real *p);
         }
 
 #endif
@@ -672,6 +684,28 @@ namespace ParticlesNS {
             void setGravity(Particles *particles, real *g_ax, real *g_ay, real *g_az);
         }
 #endif
+
+#if QUADRUPOLE
+#if DIM == 1
+    __global__ void setQuad(Particles *particles, real *qxx); // is it correct or should i use num of nodes?
+
+    namespace Launch {
+        void setQuad(Particles *particles, real *qxx);
+    }
+#elif DIM == 2
+    __global__ void setQuad(Particles *particles, real *qxx, real *qxy, real *qyy);
+
+    namespace Launch {
+        void setQuad(Particles *particles, real *qxx, real *qxy, real *qyy);
+    }
+#else
+    __global__ void setQuad(Particles *particles, real *qxx, real *qxy, real *qyy, real *qxz, real *qyz, real *qzz);
+
+    namespace Launch {
+        void setQuad(Particles *particles, real *qxx, real *qxy, real *qyy, real *qxz, real *qyz, real *qzz);
+    }
+#endif
+#endif //QUADRUPOLE
 
 #if DIM == 1
         __global__ void setLeapfrog(Particles *particles, real *ax_old, real *g_ax_old);
@@ -1014,6 +1048,19 @@ public:
 #endif
 #endif
 
+#if QUADRUPOLE
+    real *qxx;
+#if DIM > 1
+    real *qxy;
+    real *qyy;
+#if DIM == 3
+    real *qxz;
+    real *qyz;
+    real *qzz;
+#endif
+#endif
+#endif // QUADRUPOLE
+
     //integer *level;
     //integer *nodeType;
 
@@ -1066,6 +1113,16 @@ public:
                                   real *ay, real *az);
 
 #endif
+
+#if QUADRUPOLE
+#if DIM == 1
+    CUDA_CALLABLE_MEMBER void setQuad(real *qxx);
+#elif DIM == 2
+    CUDA_CALLABLE_MEMBER void setQuad(real *qxx, real *qxy, real *qyy);
+#else
+    CUDA_CALLABLE_MEMBER void setQuad(real *qxx, real *qxy, real *qyy, real *qxz, real *qyz, real *qzz);
+#endif
+#endif // QUADRUPOLE
 
     //CUDA_CALLABLE_MEMBER void setLevel(integer *level);
     //CUDA_CALLABLE_MEMBER void setNodeType(integer *nodeType);
@@ -1135,6 +1192,32 @@ namespace IntegratedParticlesNS {
         }
 
 #endif
+
+#if QUADRUPOLE
+#if DIM == 1
+    __global__ void setQuad(IntegratedParticles *integratedParticles, real *qxx);
+
+    namespace Launch {
+
+        void setQuad(IntegratedParticles *integratedParticles, real *qxx);
+    }
+#elif DIM == 2
+    __global__ void setQuad(IntegratedParticles *integratedParticles, real *qxx, real *qxy, real *qyy);
+
+    namespace Launch {
+
+        void setQuad(IntegratedParticles *integratedParticles, real *qxx, real *qxy, real *qyy);
+    }
+#else
+    __global__ void setQuad(IntegratedParticles *integratedParticles, real *qxx, real *qxy, real *qyy, real *qxz, real *qyz, real *qzz);
+
+    namespace Launch {
+
+        void setQuad(IntegratedParticles *integratedParticles, real *qxx, real *qxy, real *qyy, real *qxz, real *qyz, real *qzz);
+    }
+#endif
+#endif // QUADRUPOLE
+
 
         //__global__ void setLevel(IntegratedParticles *integratedParticles, integer *level);
         //namespace Launch {
