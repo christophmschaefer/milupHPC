@@ -36,7 +36,7 @@ for h5file in sorted(glob.glob(os.path.join(args.data, "*.h5")), key=os.path.bas
     fig = plt.figure(dpi=500)
     ax = fig.add_subplot() #projection='3d' for 3D plot
 
-    p = ax.scatter(positions[:, 0], positions[:, 1], c= process, marker=",", s=1, cmap='Dark2' , vmin = 0 , vmax = NoProc) #, r[:, 2] for 3d, vmin, vmax set the min/max for the colorbar, use a qualitative colormap
+    p = ax.scatter(positions[:, 0], positions[:, 1], c= process, marker="o", s=0.05, cmap='Dark2' , vmin = 0 , vmax = NoProc) #, r[:, 2] for 3d, vmin, vmax set the min/max for the colorbar, use a qualitative colormap
     ax.set_xlabel('X')
     ax.set_ylabel('Y')
 

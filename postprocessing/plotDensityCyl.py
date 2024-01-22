@@ -21,8 +21,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     i = 0
-    _min = 0.85
-    _max = 1.15
+    _min = 0.99
+    _max = 1.01
 
 if(args.globalmaxmin == "yes"):
     for h5file in sorted(glob.glob(os.path.join(args.data, "*.h5")), key=os.path.basename):
@@ -47,23 +47,18 @@ for h5file in sorted(glob.glob(os.path.join(args.data, "*.h5")), key=os.path.bas
 
     print("...plotting timestep figure {} ".format(i))
     fig = plt.figure(dpi=500)
-    ax = fig.add_subplot()  # projection='3d' for 3D plot
+    ax = fig.add_subplot(projection='3d')
 
-    p = ax.scatter(positions[:, 0], positions[:, 1], c=density, marker="o", s=0.05, vmin=_min,
-                   vmax=_max)  # , r[:, 2] for 3d, vmin, vmax set the min/max for the colorbar
+    p = ax.scatter(positions[:, 0], positions[:, 1], positions[:, 2], c=density, marker="o", s=0.05, vmin=_min,
+                   vmax=_max)
     ax.set_xlabel('X')
     ax.set_ylabel('Y')
-
-    # ax.set_zlabel('Z')
+    ax.set_zlabel('Z')
     # to compare different timesteps
-    # ax.set_xlim3d(-10, 10)
-    # ax.set_ylim3d(-10, 10)
-    # ax.set_zlim3d(-10, 10)″
+    ax.set_xlim3d(-10, 10)
+    ax.set_ylim3d(-5, 5)
+    ax.set_zlim3d(-1, 1)
 
-    # set ax limits
-    # for rings from origin
-    ax.set_xlim(-14, 14)
-    ax.set_ylim(-7, 7)  # (-8, 8)
     # rings in the 2nd quadrant
     # ax.set_xlim(-3, 25)
     # ax.set_ylim(-1, 13)

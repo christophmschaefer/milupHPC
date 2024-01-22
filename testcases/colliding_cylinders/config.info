@@ -1,7 +1,7 @@
 ; IO RELATED
 ; ------------------------------------------------------
 ; output directory (will be created if it does not exist)
-directory <TODO: directory>
+directory <TODO: Directory>
 
 ; outputRank (-1 corresponds to all)
 outputRank -1

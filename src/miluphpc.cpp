@@ -164,6 +164,8 @@ void Miluphpc::distributionFromFile(const std::string& filename) {
 #if INTEGRATE_DENSITY
     std::vector<real> rho;
 #endif
+// put this all (see commented below) in one if(file.exist("/Sxx)-clause ? - maybe then it compiles and works
+// to read in the deviatoric stress when given in initial Distribution
 //#if SOLID
 //    bool devStress = false;
 //    if(file.exist("/Sxx")){
@@ -304,7 +306,7 @@ void Miluphpc::prepareSimulation() {
 
     Logger(DEBUG) << "Initialize/Read particle distribution ...";
     distributionFromFile(simulationParameters.inputFile);
-    Logger(DEBUG) << "Finished Distributin from File ...";
+    Logger(DEBUG) << "Finished Distribution from File ...";
 #if SPH_SIM
     SPH::Kernel::Launch::initializeSoundSpeed(particleHandler->d_particles, materialHandler->d_materials, numParticlesLocal);
 #endif
@@ -876,7 +878,19 @@ real Miluphpc::assignParticles() {
     time += arrangeParticleEntries(d_particlesProcess, d_particlesProcessSorted, particleHandler->d_p, d_tempEntry);
     time += arrangeParticleEntries(d_particlesProcess, d_particlesProcessSorted,
                                    particleHandler->d_materialId, d_idIntTempEntry);
-#endif
+#if SOLID
+    // also add d_dSdtxx etc? do not think so
+    time += arrangeParticleEntries(d_particlesProcess, d_particlesProcessSorted, particleHandler->d_Sxx, d_tempEntry);
+#if DIM > 1
+    time += arrangeParticleEntries(d_particlesProcess, d_particlesProcessSorted, particleHandler->d_Sxy, d_tempEntry);
+    time += arrangeParticleEntries(d_particlesProcess, d_particlesProcessSorted, particleHandler->d_Syy, d_tempEntry);
+#if DIM == 3
+    time += arrangeParticleEntries(d_particlesProcess, d_particlesProcessSorted, particleHandler->d_Sxz, d_tempEntry);
+    time += arrangeParticleEntries(d_particlesProcess, d_particlesProcessSorted, particleHandler->d_Syz, d_tempEntry);
+#endif // DIM == 3
+#endif // DIM > 1
+#endif // SOLID
+#endif // SPH_SIM
 
     subDomainKeyTreeHandler->copy(To::host, true, true);
 
@@ -940,7 +954,20 @@ real Miluphpc::assignParticles() {
     sendParticlesEntry(sendLengths, receiveLengths, particleHandler->d_cs, d_tempEntry, d_copyBuffer);
     sendParticlesEntry(sendLengths, receiveLengths, particleHandler->d_p, d_tempEntry, d_copyBuffer);
     sendParticlesEntry(sendLengths, receiveLengths, particleHandler->d_materialId, d_idIntTempEntry, d_idIntCopyBuffer);
-#endif
+
+#if SOLID
+    sendParticlesEntry(sendLengths, receiveLengths, particleHandler->d_Sxx, d_tempEntry, d_copyBuffer);
+#if DIM > 1
+    sendParticlesEntry(sendLengths, receiveLengths, particleHandler->d_Sxy, d_tempEntry, d_copyBuffer);
+    sendParticlesEntry(sendLengths, receiveLengths, particleHandler->d_Syy, d_tempEntry, d_copyBuffer);
+#if DIM == 3
+    sendParticlesEntry(sendLengths, receiveLengths, particleHandler->d_Sxz, d_tempEntry, d_copyBuffer);
+    sendParticlesEntry(sendLengths, receiveLengths, particleHandler->d_Syz, d_tempEntry, d_copyBuffer);
+#endif // DIM == 3
+#endif // DIM > 1
+#endif //SOLID
+
+#endif // SPH_SIM
     numParticlesLocal = sendParticlesEntry(sendLengths, receiveLengths, particleHandler->d_mass,
                                            d_tempEntry, d_copyBuffer);
 
@@ -1026,7 +1053,19 @@ real Miluphpc::assignParticles() {
     time += HelperNS::Kernel::Launch::resetArray(&particleHandler->d_p[numParticlesLocal], (real)0, resetLength);
     time += HelperNS::Kernel::Launch::resetArray(&particleHandler->d_materialId[numParticlesLocal],
                                                  (integer)0, resetLength);
-#endif
+#if SOLID
+    time += HelperNS::Kernel::Launch::resetArray(&particleHandler->d_Sxx[numParticlesLocal], (real)0, resetLength);
+#if DIM > 1
+    time += HelperNS::Kernel::Launch::resetArray(&particleHandler->d_Sxy[numParticlesLocal], (real)0, resetLength);
+    time += HelperNS::Kernel::Launch::resetArray(&particleHandler->d_Syy[numParticlesLocal], (real)0, resetLength);
+#if DIM == 3
+    time += HelperNS::Kernel::Launch::resetArray(&particleHandler->d_Sxz[numParticlesLocal], (real)0, resetLength);
+    time += HelperNS::Kernel::Launch::resetArray(&particleHandler->d_Syz[numParticlesLocal], (real)0, resetLength);
+#endif // DIM == 3
+#endif // DIM > 1
+#endif //SOLID
+
+#endif // SPH_SIM
 
     return time;
 }

@@ -1,26 +1,24 @@
-'created by Anne Vera Jeschke 10th February 2023'
+'created by Anne Vera Jeschke 15 January 2024'
 import numpy as np
 import matplotlib.pyplot as plt
 import h5py
 
 """
-this program creates two 2-D rings (z = 0) around the origin which are then shifted to their final positions
-used for colliding rings testcase, see Gray, Monaghan, Swift SPH elastic dynamics, journal of Computer methods
-in applied mechanics and engineering (2001)
+this program creates two 3-D cylinders around the origin which are then shifted to their final positions.
+used for colliding cylinder testcase
 """
-# Dim of Rings
-dim = 2
+# Dim of cylinders
+dim = 3
 
-# Fill up with zeros to 3D
-fillUp = False
-
-# ring properties: inner and outer radius
+# cylinder properties: inner and outer radius
 r_inner = 3.0
 r_outer = 4.0
 
+width = 3  # width of cylinders will be width*delta_p
+
 # particle spacing
 delta_p = 0.1
-# 0.1   --> 2 * 2.196   = 4.392   particles
+# 0.1   --> 2 * 2.196 * width   = 4.392 *width  particles
 # 0.07  --> 2 * 4.488   = 8.976   particles
 # 0.05  --> 2 * 8.804   = 17.608  particles
 # 0.04  --> 2 * 13.736  = 27.472  particles
@@ -34,17 +32,16 @@ delta_p = 0.1
 # 0.005 --> 2 * 879.624 = 1.759.248 particles
 # 0.001 --> 2 * 21.991.108 particles
 
-# shift of the rings from origin on x-axis
+# shift of the cylinders from origin on x-axis
 shift = 6    # for delta_p <= 0.1
 # shift = 4.75  # for delta_p <= 0.05
 # shift = 4.85 # for delta_p <= 0.01, 0.005, 0.001
-
 
 # projected speed
 v_p = 0.059
 
 density = 1
-mass = delta_p**2 * density
+mass = delta_p**dim * density
 
 # create initial distribution through creating a 2d grid with dims 2*r_outer x 2*r_outer
 # then delete particles which are not on the ring
@@ -61,7 +58,7 @@ r = np.zeros((N_square, dim))
 a = np.mgrid[0:N_length, 0:N_length]
 
 # create square
-for i in range(dim):
+for i in range(dim-1):
     k = 0
     for j in range(N_square):
         if j % N_length == 0 and j > 0:
@@ -81,20 +78,15 @@ for i in range(N_square):
         arr[i] = 1
 
 # construct two rings with N particles which then are shifted along the x-axis
-if fillUp:
-    r_ring = np.zeros((N, dim+1))  # first ring
-    r_ring2 = np.zeros((N, dim+1))  # second ring
-    v = np.zeros((N, dim+1))
-    v2 = np.zeros((N, dim+1))
-else:
-    r_ring = np.zeros((N, dim))  # first ring
-    r_ring2 = np.zeros((N, dim))  # second ring
-    v = np.zeros((N, dim))
-    v2 = np.zeros((N, dim))
 
-m = np.ones(2*N)*mass # 2N because of two rings
-rho = np.ones(2*N)*density
-materialId = np.zeros(2*N, dtype=np.int8)
+r_ring = np.zeros((N, dim))  # first ring
+r_ring2 = np.zeros((N, dim))  # second ring
+v = np.zeros((N, dim))
+v2 = np.zeros((N, dim))
+NoRings = width
+m = np.ones(2*N*NoRings)*mass
+rho = np.ones(2*N*NoRings)*density
+materialId = np.zeros(2*N*NoRings, dtype=np.int8)
 #Sxx = np.zeros(2*N)
 #Sxy = np.zeros(2*N)
 
@@ -104,8 +96,7 @@ for i in range(N_square):
     if arr[i] == 1:
         r_ring[counter, 0] = r[i, 0] - shift # normal
         r_ring[counter, 1] = r[i, 1]  # normal
-        if fillUp:
-            r_ring[counter, 2] = 0  # normal
+
 
         # r_ring[counter, 0] = r[i, 0] + shift # second quandrant
         # r_ring[counter, 0] = r[i, 0] - 2.5*shift # first quadrant
@@ -119,8 +110,7 @@ for i in range(N_square):
     if arr[i] == 1:
         r_ring2[counter, 0] = r[i, 0] + shift  # normal
         r_ring2[counter, 1] = r[i, 1]  # normal
-        if fillUp:
-            r_ring2[counter, 2] = 0 # for 3D
+
         # r_ring2[counter, 0] = r[i, 0] + 2.5*shift # second quadrant
         # r_ring2[counter, 0] = r[i, 0] - shift #first quadrant
         # r_ring2[counter, 1] = r[i, 1] + shift #positive
@@ -128,23 +118,26 @@ for i in range(N_square):
         v2[counter, 0] = -v_p
         counter += 1
 # put two rings in one array
-r_final = np.concatenate((r_ring, r_ring2))
-v_final = np.concatenate((v, v2))
+r_rings = np.concatenate((r_ring, r_ring2))
+v_rings = np.concatenate((v, v2))
 
-if fillUp:
-    #h5f = h5py.File("rings_N{}-3D.h5".format(2*N), "w")
-    #print("Saving to rings_N{}-3D.h5...".format(2*N))
-    h5f = h5py.File("rings_deltap{}-3D.h5".format(delta_p), "w")
-    print("Saving to rings_deltap{}-3D.h5...".format(delta_p))
-else:
-    #h5f = h5py.File("rings_N{}-2D.h5".format(2*N), "w")
-    #print("Saving to rings_N{}-2D.h5...".format(2*N))
-    h5f = h5py.File("rings_deltap{}-2D.h5".format(delta_p), "w")
-    print("Saving to rings_deltap{}-2D.h5...".format(delta_p))
+# to create 3-D cylinders the already produces particles distribution
+# of the two rings is copied and shift along the z-axis
+for i in range(1, NoRings):
+    r_ring[:, 2] = i*delta_p
+    r_ring2[:, 2] = i*delta_p
+    r_rings = np.concatenate((r_rings, r_ring, r_ring2))
+    v_rings = np.concatenate((v_rings, v, v2))
+
+
+#h5f = h5py.File("rings_N{}-2D.h5".format(2*N), "w")
+#print("Saving to rings_N{}-2D.h5...".format(2*N))
+h5f = h5py.File("cyl_deltap{}width{}.h5".format(delta_p, NoRings), "w")
+print("Saving to cyl_deltap{}width{}.h5...".format(delta_p, NoRings))
 
 # write to hdf5 data set
-h5f.create_dataset("x", data=r_final)
-h5f.create_dataset("v", data=v_final)
+h5f.create_dataset("x", data=r_rings)
+h5f.create_dataset("v", data=v_rings)
 h5f.create_dataset("m", data=m)
 h5f.create_dataset("materialId", data=materialId)
 h5f.create_dataset("rho", data=rho)
@@ -152,5 +145,5 @@ h5f.create_dataset("rho", data=rho)
 #h5f.create_dataset("Sxy", data=Sxy)
 
 h5f.close()
-print("Number of particles: ", 2*N)
+print("Number of particles: ", 2*N*NoRings)
 print("Finished")
