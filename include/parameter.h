@@ -32,7 +32,7 @@ typedef int idInteger;
  * * `SAFETY_LEVEL 2`: more safety measures, including assertions
  * * `SAFETY_LEVEL 3`: many security measures, including all assertions
  */
-#define SAFETY_LEVEL 2
+#define SAFETY_LEVEL 1
 
 /// Dimension of the problem
 #define DIM 3
@@ -40,7 +40,7 @@ typedef int idInteger;
 #define POW_DIM power_two(DIM)
 
 /// [0]: no computation for quadrupole moments, [1]: use of quadrupole corrections
-#define QUADRUPOLE 0
+#define QUADRUPOLE 1
 
 /// [0]: natural units, [1]: SI units
 #define SI_UNITS 0
@@ -264,7 +264,7 @@ struct Entry
 #endif
 #endif
         mass,
-/**
+
 #if QUADRUPOLE
 //#if DIM == 3
     qxx,
@@ -274,7 +274,7 @@ struct Entry
     qxz, qyz, qzz
 #endif
 #endif
-#endif // QUADRUPOLE **/
+#endif // QUADRUPOLE
     };
     Name t_;
     Entry(Name t) : t_(t) {}

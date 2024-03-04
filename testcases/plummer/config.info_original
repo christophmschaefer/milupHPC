@@ -1,7 +1,7 @@
 ; IO RELATED
 ; ------------------------------------------------------
 ; output directory (will be created if it does not exist)
-directory /beegfs/work/tu_zxogc36/quad_check/
+directory output/
 
 ; outputRank (-1 corresponds to all)
 outputRank -1
@@ -10,7 +10,7 @@ outputRank -1
 omitTime true
 
 ; create log file (including warnings, errors, ...)
-log true
+log false
 
 ; create performance log
 performanceLog true
@@ -22,16 +22,14 @@ particlesSent2H5 false
 ; INTEGRATOR RELATED
 ; ------------------------------------------------------
 ; integrator selection
-; explicit euler [0], predictor-corrector euler [1], leap frog [2]
-integrator 2
+; explicit euler [0], predictor-corrector euler [1]
+integrator 1
 ; initial time step
 timeStep 0.025
-;timeStep 1e-4
 ; max time step allowed
 maxTimeStep 0.025
 ; end time for simulation
-timeEnd 0.025
-;1e-20
+timeEnd 25.0
 
 ; SIMULATION RELATED
 ; ------------------------------------------------------
@@ -43,9 +41,8 @@ sfc 0
 theta 1.0
 ; smoothing parameter for gravitational forces
 ;smoothing 0.032
-;smoothing 2.56e+20
+;smoothing 0.0267
 smoothing 0.001024
-;smoothing 3.2e10
 
 ; SPH smoothing kernel selection
 ; spiky [0], cubic spline [1], wendlandc2 [3], wendlandc4 [4], wendlandc6 [5]

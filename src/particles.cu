@@ -1079,6 +1079,7 @@ CUDA_CALLABLE_MEMBER void IntegratedParticles::set(idInteger *uid, real *rho, re
 
 #endif
 
+
 #if QUADRUPOLE
 #if DIM == 1
 CUDA_CALLABLE_MEMBER void IntegratedParticles::setQuad(real *qxx) {
@@ -1101,6 +1102,7 @@ CUDA_CALLABLE_MEMBER void IntegratedParticles::setQuad(real *qxx, real *qxy, rea
 }
 #endif
 #endif // QUADRUPOLE
+
 
 //CUDA_CALLABLE_MEMBER void IntegratedParticles::setLevel(integer *level) {
 //    this->level = level;
@@ -1221,6 +1223,8 @@ namespace IntegratedParticlesNS {
         }
 
 #endif
+
+
 
 #if QUADRUPOLE
 #if DIM == 1

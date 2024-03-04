@@ -1061,6 +1061,7 @@ public:
 #endif
 #endif // QUADRUPOLE
 
+
     //integer *level;
     //integer *nodeType;
 
@@ -1114,15 +1115,20 @@ public:
 
 #endif
 
+// look here it's either i shouldn't add the quadrupole terms or i should add CUDA_CALLABLE_MEMBER IntegratedParticles
 #if QUADRUPOLE
 #if DIM == 1
+    //CUDA_CALLABLE_MEMBER IntegratedParticles(real *qxx);
     CUDA_CALLABLE_MEMBER void setQuad(real *qxx);
 #elif DIM == 2
+    //CUDA_CALLABLE_MEMBER IntegratedParticles(real *qxx, real *qxy, real *qyy);
     CUDA_CALLABLE_MEMBER void setQuad(real *qxx, real *qxy, real *qyy);
 #else
+    //CUDA_CALLABLE_MEMBER IntegratedParticles(real *qxx, real *qxy, real *qyy, real *qxz, real *qyz, real *qzz);
     CUDA_CALLABLE_MEMBER void setQuad(real *qxx, real *qxy, real *qyy, real *qxz, real *qyz, real *qzz);
 #endif
 #endif // QUADRUPOLE
+
 
     //CUDA_CALLABLE_MEMBER void setLevel(integer *level);
     //CUDA_CALLABLE_MEMBER void setNodeType(integer *nodeType);
@@ -1217,6 +1223,7 @@ namespace IntegratedParticlesNS {
     }
 #endif
 #endif // QUADRUPOLE
+
 
 
         //__global__ void setLevel(IntegratedParticles *integratedParticles, integer *level);

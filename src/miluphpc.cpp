@@ -248,6 +248,8 @@ void Miluphpc::prepareSimulation() {
     //cuda::copy(particleHandler->h_noi, particleHandler->d_noi, numParticles, To::device);
     //cuda::copy(particleHandler->h_cs, particleHandler->d_cs, numParticles, To::device);
 #endif
+/**
+// I changes this from numParticles to numParticlesLocal
 #if QUADRUPOLE
     cuda::copy(particleHandler->h_qxx, particleHandler->d_qxx, numParticles, To::device);
 #if DIM > 1
@@ -259,7 +261,7 @@ void Miluphpc::prepareSimulation() {
     cuda::copy(particleHandler->h_qzz, particleHandler->d_qzz, numParticles, To::device);
 #endif
 #endif
-#endif // QUADRUPOLE
+#endif // QUADRUPOLE **/
     if (simulationParameters.removeParticles) {
         removeParticles();
     }
@@ -609,6 +611,20 @@ real Miluphpc::reset() {
 #endif
 #endif
 
+#if QUADRUPOLE // fixed numParticlesLocal instead of numParticles
+    cuda::set(particleHandler->d_qxx, (real)0., numParticles);
+#if DIM > 1
+    cuda::set(particleHandler->d_qxy, (real)0., numParticles);
+    cuda::set(particleHandler->d_qyy, (real)0., numParticles);
+#if DIM == 3
+    cuda::set(particleHandler->d_qxz, (real)0., numParticles);
+    cuda::set(particleHandler->d_qyz, (real)0., numParticles);
+    cuda::set(particleHandler->d_qzz, (real)0., numParticles);
+#endif
+#endif
+#endif // QUADRUPOLE
+
+
     // TODO: just some testing
     /*
     cuda::set(treeHandler->d_child, -1, POW_DIM * numNodes);
@@ -765,14 +781,23 @@ real Miluphpc::assignParticles() {
 #endif
 
 #if QUADRUPOLE
-    time += arrangeParticleEntries(d_particlesProcess, d_particlesProcessSorted, particleHandler->d_qxx, d_tempEntry);
+    // added if (arrangeAll)
+    if (arrangeAll) {
+        time += arrangeParticleEntries(d_particlesProcess, d_particlesProcessSorted, particleHandler->d_qxx,
+                                       d_tempEntry);
 #if DIM > 1
-    time += arrangeParticleEntries(d_particlesProcess, d_particlesProcessSorted, particleHandler->d_qxy, d_tempEntry);
-    time += arrangeParticleEntries(d_particlesProcess, d_particlesProcessSorted, particleHandler->d_qyy, d_tempEntry);
+        time += arrangeParticleEntries(d_particlesProcess, d_particlesProcessSorted, particleHandler->d_qxy,
+                                       d_tempEntry);
+        time += arrangeParticleEntries(d_particlesProcess, d_particlesProcessSorted, particleHandler->d_qyy,
+                                       d_tempEntry);
 #if DIM == 3
-    time += arrangeParticleEntries(d_particlesProcess, d_particlesProcessSorted, particleHandler->d_qxz, d_tempEntry);
-    time += arrangeParticleEntries(d_particlesProcess, d_particlesProcessSorted, particleHandler->d_qyz, d_tempEntry);
-    time += arrangeParticleEntries(d_particlesProcess, d_particlesProcessSorted, particleHandler->d_qzz, d_tempEntry);
+        time += arrangeParticleEntries(d_particlesProcess, d_particlesProcessSorted, particleHandler->d_qxz,
+                                       d_tempEntry);
+        time += arrangeParticleEntries(d_particlesProcess, d_particlesProcessSorted, particleHandler->d_qyz,
+                                       d_tempEntry);
+        time += arrangeParticleEntries(d_particlesProcess, d_particlesProcessSorted, particleHandler->d_qzz,
+                                       d_tempEntry);
+    }
 #endif
 #endif
 #endif // QUADRUPOLE
@@ -869,14 +894,16 @@ real Miluphpc::assignParticles() {
     sendParticlesEntry(sendLengths, receiveLengths, particleHandler->d_uid, d_idIntTempEntry, d_idIntCopyBuffer);
 
 #if QUADRUPOLE
-    sendParticlesEntry(sendLengths, receiveLengths, particleHandler->d_qxx, d_tempEntry, d_copyBuffer);
+    if (arrangeAll) {
+        sendParticlesEntry(sendLengths, receiveLengths, particleHandler->d_qxx, d_tempEntry, d_copyBuffer);
 #if DIM > 1
-    sendParticlesEntry(sendLengths, receiveLengths, particleHandler->d_qxy, d_tempEntry, d_copyBuffer);
-    sendParticlesEntry(sendLengths, receiveLengths, particleHandler->d_qyy, d_tempEntry, d_copyBuffer);
+        sendParticlesEntry(sendLengths, receiveLengths, particleHandler->d_qxy, d_tempEntry, d_copyBuffer);
+        sendParticlesEntry(sendLengths, receiveLengths, particleHandler->d_qyy, d_tempEntry, d_copyBuffer);
 #if DIM == 3
-    sendParticlesEntry(sendLengths, receiveLengths, particleHandler->d_qxz, d_tempEntry, d_copyBuffer);
-    sendParticlesEntry(sendLengths, receiveLengths, particleHandler->d_qyz, d_tempEntry, d_copyBuffer);
-    sendParticlesEntry(sendLengths, receiveLengths, particleHandler->d_qzz, d_tempEntry, d_copyBuffer);
+        sendParticlesEntry(sendLengths, receiveLengths, particleHandler->d_qxz, d_tempEntry, d_copyBuffer);
+        sendParticlesEntry(sendLengths, receiveLengths, particleHandler->d_qyz, d_tempEntry, d_copyBuffer);
+        sendParticlesEntry(sendLengths, receiveLengths, particleHandler->d_qzz, d_tempEntry, d_copyBuffer);
+    }
 #endif
 #endif
 #endif
@@ -967,20 +994,22 @@ real Miluphpc::assignParticles() {
                                                  (idInteger)0, resetLength);
 
 #if QUADRUPOLE
-    time += HelperNS::Kernel::Launch::resetArray(&particleHandler->d_qxx[numParticlesLocal],
-                                                 (real)0, resetLength);
+    if (arrangeAll) {
+        time += HelperNS::Kernel::Launch::resetArray(&particleHandler->d_qxx[numParticlesLocal],
+                                                     (real) 0, resetLength);
 #if DIM > 1
-    time += HelperNS::Kernel::Launch::resetArray(&particleHandler->d_qxy[numParticlesLocal],
-                                                 (real)0, resetLength);
-    time += HelperNS::Kernel::Launch::resetArray(&particleHandler->d_qyy[numParticlesLocal],
-                                                 (real)0, resetLength);
+        time += HelperNS::Kernel::Launch::resetArray(&particleHandler->d_qxy[numParticlesLocal],
+                                                     (real) 0, resetLength);
+        time += HelperNS::Kernel::Launch::resetArray(&particleHandler->d_qyy[numParticlesLocal],
+                                                     (real) 0, resetLength);
 #if DIM == 3
-    time += HelperNS::Kernel::Launch::resetArray(&particleHandler->d_qxz[numParticlesLocal],
-                                                 (real)0, resetLength);
-    time += HelperNS::Kernel::Launch::resetArray(&particleHandler->d_qyz[numParticlesLocal],
-                                                 (real)0, resetLength);
-    time += HelperNS::Kernel::Launch::resetArray(&particleHandler->d_qzz[numParticlesLocal],
-                                                 (real)0, resetLength);
+        time += HelperNS::Kernel::Launch::resetArray(&particleHandler->d_qxz[numParticlesLocal],
+                                                     (real) 0, resetLength);
+        time += HelperNS::Kernel::Launch::resetArray(&particleHandler->d_qyz[numParticlesLocal],
+                                                     (real) 0, resetLength);
+        time += HelperNS::Kernel::Launch::resetArray(&particleHandler->d_qzz[numParticlesLocal],
+                                                     (real) 0, resetLength);
+    }
 #endif
 #endif
 #endif // QUADRUPOLE
@@ -1244,6 +1273,143 @@ real Miluphpc::parallel_pseudoParticles() {
 
 #endif
 #endif
+/**
+    // quadrupoles -----------------------------------------------------------------------------------------------------
+#if QUADRUPOLE
+    // qxx -------------------------------------------------------------------------------------------------------------
+    cuda::set(lowestDomainListHandler->d_domainListCounter, 0);
+    time += SubDomainKeyTreeNS::Kernel::Launch::prepareLowestDomainExchange(particleHandler->d_particles,
+                                                                            lowestDomainListHandler->d_domainList,
+                                                                            buffer->d_realBuffer, Entry::qxx);
+
+    time += HelperNS::sortArray(buffer->d_realBuffer,
+                                &buffer->d_realBuffer[simulationParameters.domainListSize],
+                                lowestDomainListHandler->d_domainListKeys,
+                                lowestDomainListHandler->d_sortedDomainListKeys,
+                                domainListIndex);
+
+    all_reduce(comm, boost::mpi::inplace_t<real*>(&buffer->d_realBuffer[simulationParameters.domainListSize]),
+               domainListIndex, std::plus<real>());
+
+    cuda::set(lowestDomainListHandler->d_domainListCounter, 0);
+
+    time += SubDomainKeyTreeNS::Kernel::Launch::updateLowestDomainListNodes(particleHandler->d_particles,
+                                                                            lowestDomainListHandler->d_domainList,
+                                                                            &buffer->d_realBuffer[simulationParameters.domainListSize],
+                                                                            Entry::qxx);
+
+#if DIM > 1
+    // qxy -------------------------------------------------------------------------------------------------------------
+    cuda::set(lowestDomainListHandler->d_domainListCounter, 0);
+    time += SubDomainKeyTreeNS::Kernel::Launch::prepareLowestDomainExchange(particleHandler->d_particles,
+                                                                            lowestDomainListHandler->d_domainList,
+                                                                            buffer->d_realBuffer, Entry::qxy);
+
+    time += HelperNS::sortArray(buffer->d_realBuffer,
+                                &buffer->d_realBuffer[simulationParameters.domainListSize],
+                                lowestDomainListHandler->d_domainListKeys,
+                                lowestDomainListHandler->d_sortedDomainListKeys,
+                                domainListIndex);
+
+    all_reduce(comm, boost::mpi::inplace_t<real*>(&buffer->d_realBuffer[simulationParameters.domainListSize]),
+               domainListIndex, std::plus<real>());
+
+    cuda::set(lowestDomainListHandler->d_domainListCounter, 0);
+
+    time += SubDomainKeyTreeNS::Kernel::Launch::updateLowestDomainListNodes(particleHandler->d_particles,
+                                                                            lowestDomainListHandler->d_domainList,
+                                                                            &buffer->d_realBuffer[simulationParameters.domainListSize],
+                                                                            Entry::qxy);
+    // qyy -------------------------------------------------------------------------------------------------------------
+    cuda::set(lowestDomainListHandler->d_domainListCounter, 0);
+    time += SubDomainKeyTreeNS::Kernel::Launch::prepareLowestDomainExchange(particleHandler->d_particles,
+                                                                            lowestDomainListHandler->d_domainList,
+                                                                            buffer->d_realBuffer, Entry::qyy);
+
+    time += HelperNS::sortArray(buffer->d_realBuffer,
+                                &buffer->d_realBuffer[simulationParameters.domainListSize],
+                                lowestDomainListHandler->d_domainListKeys,
+                                lowestDomainListHandler->d_sortedDomainListKeys,
+                                domainListIndex);
+
+    all_reduce(comm, boost::mpi::inplace_t<real*>(&buffer->d_realBuffer[simulationParameters.domainListSize]),
+               domainListIndex, std::plus<real>());
+
+    cuda::set(lowestDomainListHandler->d_domainListCounter, 0);
+
+    time += SubDomainKeyTreeNS::Kernel::Launch::updateLowestDomainListNodes(particleHandler->d_particles,
+                                                                            lowestDomainListHandler->d_domainList,
+                                                                            &buffer->d_realBuffer[simulationParameters.domainListSize],
+                                                                            Entry::qyy);
+#if DIM == 3
+    // qxz -------------------------------------------------------------------------------------------------------------
+    cuda::set(lowestDomainListHandler->d_domainListCounter, 0);
+    time += SubDomainKeyTreeNS::Kernel::Launch::prepareLowestDomainExchange(particleHandler->d_particles,
+                                                                            lowestDomainListHandler->d_domainList,
+                                                                            buffer->d_realBuffer, Entry::qxz);
+
+    time += HelperNS::sortArray(buffer->d_realBuffer,
+                                &buffer->d_realBuffer[simulationParameters.domainListSize],
+                                lowestDomainListHandler->d_domainListKeys,
+                                lowestDomainListHandler->d_sortedDomainListKeys,
+                                domainListIndex);
+
+    all_reduce(comm, boost::mpi::inplace_t<real*>(&buffer->d_realBuffer[simulationParameters.domainListSize]),
+               domainListIndex, std::plus<real>());
+
+    cuda::set(lowestDomainListHandler->d_domainListCounter, 0);
+
+    time += SubDomainKeyTreeNS::Kernel::Launch::updateLowestDomainListNodes(particleHandler->d_particles,
+                                                                            lowestDomainListHandler->d_domainList,
+                                                                            &buffer->d_realBuffer[simulationParameters.domainListSize],
+                                                                            Entry::qxz);
+
+    // qyz -------------------------------------------------------------------------------------------------------------
+    cuda::set(lowestDomainListHandler->d_domainListCounter, 0);
+    time += SubDomainKeyTreeNS::Kernel::Launch::prepareLowestDomainExchange(particleHandler->d_particles,
+                                                                            lowestDomainListHandler->d_domainList,
+                                                                            buffer->d_realBuffer, Entry::qyz);
+
+    time += HelperNS::sortArray(buffer->d_realBuffer,
+                                &buffer->d_realBuffer[simulationParameters.domainListSize],
+                                lowestDomainListHandler->d_domainListKeys,
+                                lowestDomainListHandler->d_sortedDomainListKeys,
+                                domainListIndex);
+
+    all_reduce(comm, boost::mpi::inplace_t<real*>(&buffer->d_realBuffer[simulationParameters.domainListSize]),
+               domainListIndex, std::plus<real>());
+
+    cuda::set(lowestDomainListHandler->d_domainListCounter, 0);
+
+    time += SubDomainKeyTreeNS::Kernel::Launch::updateLowestDomainListNodes(particleHandler->d_particles,
+                                                                            lowestDomainListHandler->d_domainList,
+                                                                            &buffer->d_realBuffer[simulationParameters.domainListSize],
+                                                                            Entry::qyz);
+    // qzz -------------------------------------------------------------------------------------------------------------
+    cuda::set(lowestDomainListHandler->d_domainListCounter, 0);
+    time += SubDomainKeyTreeNS::Kernel::Launch::prepareLowestDomainExchange(particleHandler->d_particles,
+                                                                            lowestDomainListHandler->d_domainList,
+                                                                            buffer->d_realBuffer, Entry::qzz);
+
+    time += HelperNS::sortArray(buffer->d_realBuffer,
+                                &buffer->d_realBuffer[simulationParameters.domainListSize],
+                                lowestDomainListHandler->d_domainListKeys,
+                                lowestDomainListHandler->d_sortedDomainListKeys,
+                                domainListIndex);
+
+    all_reduce(comm, boost::mpi::inplace_t<real*>(&buffer->d_realBuffer[simulationParameters.domainListSize]),
+               domainListIndex, std::plus<real>());
+
+    cuda::set(lowestDomainListHandler->d_domainListCounter, 0);
+
+    time += SubDomainKeyTreeNS::Kernel::Launch::updateLowestDomainListNodes(particleHandler->d_particles,
+                                                                            lowestDomainListHandler->d_domainList,
+                                                                            &buffer->d_realBuffer[simulationParameters.domainListSize],
+                                                                            Entry::qzz);
+
+#endif
+#endif
+#endif // QUADRUPOLE **/
 
     // m ---------------------------------------------------------------------------------------------------------------
 
@@ -1890,37 +2056,75 @@ real Miluphpc::parallel_gravity() {
 
 #endif
 #endif
-
+/**
 #if QUADRUPOLE
+
+    CudaUtils::Kernel::Launch::collectValues(d_pseudoParticles2SendIndices, particleHandler->d_qxx, d_collectedEntries,
+                                             pseudoParticleTotalSendLength);
+    sendParticles(d_collectedEntries, &particleHandler->d_qxx[treeIndex], pseudoParticleSendLengths,
+                  pseudoParticleReceiveLengths);
+
     CudaUtils::Kernel::Launch::collectValues(d_particles2SendIndices, particleHandler->d_qxx, d_collectedEntries,
                                              particleTotalSendLength);
     sendParticles(d_collectedEntries, &particleHandler->d_qxx[numParticlesLocal], particleSendLengths,
                   particleReceiveLengths);
 #if DIM > 1
+
+    CudaUtils::Kernel::Launch::collectValues(d_pseudoParticles2SendIndices, particleHandler->d_qxy, d_collectedEntries,
+                                             pseudoParticleTotalSendLength);
+    sendParticles(d_collectedEntries, &particleHandler->d_qxy[treeIndex], pseudoParticleSendLengths,
+                  pseudoParticleReceiveLengths);
+
     CudaUtils::Kernel::Launch::collectValues(d_particles2SendIndices, particleHandler->d_qxy, d_collectedEntries,
                                              particleTotalSendLength);
     sendParticles(d_collectedEntries, &particleHandler->d_qxy[numParticlesLocal], particleSendLengths,
                   particleReceiveLengths);
+
+    CudaUtils::Kernel::Launch::collectValues(d_pseudoParticles2SendIndices, particleHandler->d_qyy, d_collectedEntries,
+                                             pseudoParticleTotalSendLength);
+    sendParticles(d_collectedEntries, &particleHandler->d_qyy[treeIndex], pseudoParticleSendLengths,
+                  pseudoParticleReceiveLengths);
+
     CudaUtils::Kernel::Launch::collectValues(d_particles2SendIndices, particleHandler->d_qyy, d_collectedEntries,
                                              particleTotalSendLength);
     sendParticles(d_collectedEntries, &particleHandler->d_qyy[numParticlesLocal], particleSendLengths,
                   particleReceiveLengths);
 #if DIM == 3
+
+    CudaUtils::Kernel::Launch::collectValues(d_pseudoParticles2SendIndices, particleHandler->d_qxz, d_collectedEntries,
+                                             pseudoParticleTotalSendLength);
+    sendParticles(d_collectedEntries, &particleHandler->d_qxz[treeIndex], pseudoParticleSendLengths,
+                  pseudoParticleReceiveLengths);
+
     CudaUtils::Kernel::Launch::collectValues(d_particles2SendIndices, particleHandler->d_qxz, d_collectedEntries,
                                              particleTotalSendLength);
     sendParticles(d_collectedEntries, &particleHandler->d_qxz[numParticlesLocal], particleSendLengths,
                   particleReceiveLengths);
+
+
+    CudaUtils::Kernel::Launch::collectValues(d_pseudoParticles2SendIndices, particleHandler->d_qyz, d_collectedEntries,
+                                             pseudoParticleTotalSendLength);
+    sendParticles(d_collectedEntries, &particleHandler->d_qyz[treeIndex], pseudoParticleSendLengths,
+                  pseudoParticleReceiveLengths);
+
     CudaUtils::Kernel::Launch::collectValues(d_particles2SendIndices, particleHandler->d_qyz, d_collectedEntries,
                                              particleTotalSendLength);
     sendParticles(d_collectedEntries, &particleHandler->d_qyz[numParticlesLocal], particleSendLengths,
                   particleReceiveLengths);
+
+    CudaUtils::Kernel::Launch::collectValues(d_pseudoParticles2SendIndices, particleHandler->d_qzz, d_collectedEntries,
+                                             pseudoParticleTotalSendLength);
+    sendParticles(d_collectedEntries, &particleHandler->d_qzz[treeIndex], pseudoParticleSendLengths,
+                  pseudoParticleReceiveLengths);
+
+
     CudaUtils::Kernel::Launch::collectValues(d_particles2SendIndices, particleHandler->d_qzz, d_collectedEntries,
                                              particleTotalSendLength);
     sendParticles(d_collectedEntries, &particleHandler->d_qzz[numParticlesLocal], particleSendLengths,
                   particleReceiveLengths);
 #endif
 #endif
-#endif // QUADRUPOLE
+#endif // QUADRUPOLE **/
 
     // mass-entry pseudo-particle exchange
     CudaUtils::Kernel::Launch::collectValues(d_pseudoParticles2SendIndices, particleHandler->d_mass, d_collectedEntries,
@@ -3313,6 +3517,7 @@ real Miluphpc::removeParticles() {
                                                  (real)0, h_particles2remove_counter);
 #endif
 #endif
+
 #if QUADRUPOLE
     time += HelperNS::Kernel::Launch::resetArray(&particleHandler->d_qxx[numParticlesLocal-h_particles2remove_counter],
                                                  (real)0, h_particles2remove_counter);
@@ -3540,6 +3745,19 @@ real Miluphpc::particles2file(int step) {
     std::vector<real> rho, p, e, sml, cs;
     std::vector<integer> noi;
 #endif
+/**
+#if QUADRUPOLE
+    std::vector<real> qxx;
+#if DIM > 1
+    std::vector<real> qxy;
+    std::vector<real> qyy;
+#if DIM == 3
+    std::vector<real> qxz;
+    std::vector<real> qyz;
+    std::vector<real> qzz;
+#endif
+#endif
+#endif **/
 
     Logger(INFO) << "copying particles ...";
 
@@ -3585,17 +3803,20 @@ real Miluphpc::particles2file(int step) {
         mass.push_back(particleHandler->h_mass[i]);
         particleProc.push_back(subDomainKeyTreeHandler->h_subDomainKeyTree->rank);
         //Logger(INFO) << "mass[" << i << "] = " << mass[i];
-        /**
+/**
 #if QUADRUPOLE
-#if DIM == 1
-        qxx.push_back({particleHandler->h_qxx[i]});
-#elif DIM == 2
-        qxx.push_back({particleHandler->h_qxx[i], particleHandler->h_qxy[i], particleHandler->h_qyy[i]});
-#else
-        qxx.push_back({particleHandler->h_qxx[i], particleHandler->h_qxy[i], particleHandler->h_qyy[i],
-        particleHandler->h_qxz[i], particleHandler->h_qyz[i], particleHandler->h_qzz[i]});
+        qxx.push_back(particleHandler->h_qxx[i]);
+#if DIM > 1
+        qxy.push_back(particleHandler->h_qxy[i]);
+        qyy.push_back(particleHandler->h_qyy[i]);
+#if DIM == 3
+        qxz.push_back(particleHandler->h_qxz[i]);
+        qyz.push_back(particleHandler->h_qyz[i]);
+        qzz.push_back(particleHandler->h_qzz[i]);
+#endif
 #endif
 #endif // QUADRUPOLE **/
+
 #if SPH_SIM
         rho.push_back(particleHandler->h_rho[i]);
         p.push_back(particleHandler->h_p[i]);

@@ -17,7 +17,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Plot conservation of energy and angular momentum for Plummer test case.")
     parser.add_argument("--data", "-d", metavar="str", type=str, help="input directory",
-                        nargs="?", default="~/git/miluphpc/output")
+            nargs="?", default="/beegfs/work/tu_zxogc36/miluphpc_grid")
     parser.add_argument("--output", "-o", metavar="str", type=str, help="output directory",
                         nargs="?", default="plummer_")
     parser.add_argument("--angular_momentum", "-L", action="store_true", help="plot angular momentum (defaul: energy and mass)")
@@ -77,12 +77,12 @@ if __name__ == "__main__":
         
         ax1.plot(time, angMom[:, 0], label="L_x")
         ax1.plot(time, angMom[:, 1], label="L_y")
-        ax1.plot(time, angMom[:, 2], label="L_z")
+        ax1.plot(time, angMom[:, 2], label="L_z", color='red')
 
         plt.legend(loc="best")
         
         fig.tight_layout()
-        plt.savefig("plummerout/angular_momentum.png".format(args.output))
+        plt.savefig("quad_check/angular_momentum.png".format(args.output))
 
     elif args.mass_quantiles:
         ax1.set_title("Radii containing percentage of total mass")
@@ -98,7 +98,7 @@ if __name__ == "__main__":
         ax1.set_ylim([0.01, 0.7])
 
         fig.tight_layout()
-        plt.savefig("plummerout/mass_quantiles.png".format(args.output))
+        plt.savefig("quad_check/mass_quantiles.png".format(args.output))
 
         with open("{}mass_quantiles.csv".format(args.output), 'w', newline='') as csv_file:
             csv_writer = csv.writer(csv_file, delimiter=";")
@@ -121,4 +121,4 @@ if __name__ == "__main__":
 
         fig.tight_layout()
         fig.legend()
-        plt.savefig("plummerout/energy_mass.png".format(args.output))
+        plt.savefig("quad_check/energy_mass.png".format(args.output))

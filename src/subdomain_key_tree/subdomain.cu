@@ -278,7 +278,7 @@ namespace SubDomainKeyTreeNS {
 #endif
                             //particles->mass[cell] += particles->mass[childIndex];
                             particles->mass[cell] = particles->mass[childIndex];
-/**
+
 #if QUADRUPOLE
 //#if DIM == 3
                             particles->qxx[cell] = particles->qxx[childIndex];
@@ -291,7 +291,7 @@ namespace SubDomainKeyTreeNS {
                             particles->qzz[cell] = particles->qzz[childIndex];
 #endif
 #endif
-#endif // QUADRUPOLE **/
+#endif // QUADRUPOLE
                             particles->level[cell] = particles->level[childIndex];
                             particles->level[childIndex] += 1;
 #if DEBUGGING
@@ -791,6 +791,19 @@ namespace SubDomainKeyTreeNS {
                             //particles->z[cell] = 0.5 * (min_z + max_z);
 #endif
 #endif
+/** bad
+#if QUADRUPOLE
+                            particles->qxx[cell] = particles->qxx[childIndex];
+#if DIM > 1
+                            particles->qxy[cell] = particles->qxy[childIndex];
+                            particles->qyy[cell] = particles->qyy[childIndex];
+#if DIM == 3
+                            particles->qxz[cell] = particles->qxz[childIndex];
+                            particles->qyz[cell] = particles->qyz[childIndex];
+                            particles->qzz[cell] = particles->qzz[childIndex];
+#endif
+#endif
+#endif // QUADRUPOLE **/
 
                             domainList->borders[(index + offset) * 2 * DIM] = min_x;
                             domainList->borders[(index + offset) * 2 * DIM + 1] = max_x;
@@ -1016,7 +1029,7 @@ namespace SubDomainKeyTreeNS {
 #endif
 #endif
                     particles->mass[domainIndex] = (real)0;
-/**
+
 #if QUADRUPOLE
 #if DIM == 3
                     particles->qxx[domainIndex] = (real)0;
@@ -1029,7 +1042,7 @@ namespace SubDomainKeyTreeNS {
                     particles->qzz[domainIndex] = (real)0;
 //#endif
 #endif
-#endif // QUADRUPOLE **/
+#endif // QUADRUPOLE
                 }
                 else {
                 //    //printf("domainIndex = %i *= mass = %f\n", domainIndex, particles->mass[domainIndex]);
@@ -1159,12 +1172,12 @@ namespace SubDomainKeyTreeNS {
 
 /**
 #if QUADRUPOLE
-#if DIM == 3
+//#if DIM == 3
                     case Entry::qxx: {
                         particles->qxx[lowestDomainList->domainListIndices[originalIndex]] =
                                 buffer[bodyIndex + offset];
                     } break;
-//#if DIM > 1
+#if DIM > 1
                     case Entry::qxy: {
                         particles->qxy[lowestDomainList->domainListIndices[originalIndex]] =
                                 buffer[bodyIndex + offset];
@@ -1173,7 +1186,7 @@ namespace SubDomainKeyTreeNS {
                         particles->qyy[lowestDomainList->domainListIndices[originalIndex]] =
                                 buffer[bodyIndex + offset];
                     } break;
-//#if DIM == 3
+#if DIM == 3
                     case Entry::qxz: {
                         particles->qxz[lowestDomainList->domainListIndices[originalIndex]] =
                                 buffer[bodyIndex + offset];
@@ -1186,7 +1199,7 @@ namespace SubDomainKeyTreeNS {
                         particles->qzz[lowestDomainList->domainListIndices[originalIndex]] =
                                 buffer[bodyIndex + offset];
                     } break;
-//#endif
+#endif
 #endif
 #endif // QUADRUPOLE **/
                     default: {
@@ -1657,16 +1670,15 @@ namespace SubDomainKeyTreeNS {
 
 
 #if QUADRUPOLE
-#if DIM == 3
                 particles->qxx[bodyIndex + offset] = 0.;
-//#if DIM > 1
+#if DIM > 1
                 particles->qxy[bodyIndex + offset] = 0.;
                 particles->qyy[bodyIndex + offset] = 0.;
-//#if DIM == 3
+#if DIM == 3
                 particles->qxz[bodyIndex + offset] = 0.;
                 particles->qyz[bodyIndex + offset] = 0.;
                 particles->qzz[bodyIndex + offset] = 0.;
-//#endif
+#endif
 #endif
 #endif // QUADRUPOLE
                 particles->mass[bodyIndex + offset] = 0.;
@@ -1706,18 +1718,18 @@ namespace SubDomainKeyTreeNS {
                 particles->mass[bodyIndex + offset] = 0.;
                 //tree->start[bodyIndex + offset] = -1;
                 //tree->sorted[bodyIndex + offset] = 0;
-
+/** maybe uncomment **/
 #if QUADRUPOLE
-#if DIM == 3
+//#if DIM == 3
                 particles->qxx[bodyIndex + offset] = 0.;
-//#if DIM > 1
+#if DIM > 1
                 particles->qxy[bodyIndex + offset] = 0.;
                 particles->qyy[bodyIndex + offset] = 0.;
-//#if DIM == 3
+#if DIM == 3
                 particles->qxz[bodyIndex + offset] = 0.;
                 particles->qyz[bodyIndex + offset] = 0.;
                 particles->qzz[bodyIndex + offset] = 0.;
-//#endif
+#endif
 #endif
 #endif // QUADRUPOLE
                 offset += stride;

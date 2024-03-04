@@ -771,6 +771,7 @@ void ParticleHandler::setPointer(IntegratedParticleHandler *integratedParticleHa
 #endif // QUADRUPOLES
 
 
+
 #if SPH_SIM
     d_rho = integratedParticleHandler->d_rho;
     d_e = integratedParticleHandler->d_e;
@@ -1026,6 +1027,7 @@ void ParticleHandler::copyQuad(To::Target target) {
 }
 
 
+
 void ParticleHandler::copyDistribution(To::Target target, bool velocity, bool acceleration, bool includePseudoParticles) {
     copyUid(target);
     copyMass(target, includePseudoParticles);
@@ -1112,6 +1114,16 @@ IntegratedParticleHandler::IntegratedParticleHandler(integer numParticles, integ
     IntegratedParticlesNS::Kernel::Launch::set(d_integratedParticles, d_uid, d_rho, d_e, d_dedt, d_p, d_cs, d_x,
                                                d_y, d_z, d_vx, d_vy, d_vz, d_ax, d_ay, d_az);
 #endif
+
+#if QUADRUPOLE
+#if DIM == 1
+    IntegratedParticlesNS::Kernel::Launch::setQuad(d_integratedParticles, d_qxx);
+#elif DIM == 2
+    IntegratedParticlesNS::Kernel::Launch::setQuad(d_integratedParticles, d_qxx, d_qxy, d_qyy);
+#else
+    IntegratedParticlesNS::Kernel::Launch::setQuad(d_integratedParticles, d_qxx, d_qxy, d_qyy, d_qxz, d_qyz, d_qzz);
+#endif
+#endif // QUADRUPOLE
 
     IntegratedParticlesNS::Kernel::Launch::setSML(d_integratedParticles, d_sml);
 

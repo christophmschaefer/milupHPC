@@ -1,10 +1,10 @@
 #!/bin/bash
 #PBS -N PlummerTest
-#PBS -l nodes=2:ppn=4:gpus=4:exclusive_process
+#PBS -l nodes=2:ppn=2:gpus=2:exclusive_process
 #PBS -l walltime=00:45:00
 #PBS -l pmem=10gb
 #PBS -q short
-#PBS -m aeb -M hania.azzam@student.uni-tuebingen.de
+# -m aeb -M hania.azzam@student.uni-tuebingen.de
 source ~/.bashrc
 
 # Loading modules
@@ -27,5 +27,5 @@ nvidia-smi
 #mpirun --bind-to socket --map-by core --report-bindings bin/runner -i 10 -c 0 -f examples/kepler.h5
 #mpirun --bind-to core --map-by core --report-bindings bin/runner -i 100 -c 1 -f examples/plummer.h5 -l -L 10
 #mpirun --bind-to core --map-by core --report-bindings bin/miluphpc -c 1 -f plummer/plummerN10000seed5.h5 -C testcases/plummer/config.info -l -L 10
-mpirun --bind-to core --map-by core --report-bindings bin/runner -f testcases/initial_pd/plN10000seed4056925401.h5 -C testcases/plummer/config.info
+mpirun --bind-to core --map-by core --report-bindings bin/runner -f testcases/initial_pd/plN4096seed2521161560.h5 -C testcases/plummer/config.info
 #mpirun --bind-to core --map-by core --report-bindings bin/runner -f testcases/initial_pd/sedov_N61.h5 -C testcases/sedov/config.info -m testcases/sedov/material.cfg

@@ -1017,21 +1017,21 @@ __global__ void TreeNS::Kernel::buildTree(Tree *tree, Particles *particles, inte
                         //}
 
                         particles->mass[cell] += particles->mass[childIndex];
-                        /**
+/**
 #if QUADRUPOLE
-#if DIM == 3
+//#if DIM == 3
                         particles->qxx[cell] += particles->qxx[childIndex];
-//#if DIM > 1
+#if DIM > 1
                         particles->qxy[cell] += particles->qxy[childIndex];
                         particles->qyy[cell] += particles->qyy[childIndex];
-//#if DIM == 3
+#if DIM == 3
                         particles->qxz[cell] += particles->qxz[childIndex];
                         particles->qyz[cell] += particles->qyz[childIndex];
                         particles->qzz[cell] += particles->qzz[childIndex];
-//#endif
 #endif
-#endif **/
-#else // COMPUTE_DIRECTLY
+#endif
+#endif
+#else // COMPUTE_DIRECTLY **/
                         //particles->x[cell] = particles->x[childIndex];
                         particles->x[cell] = 0.5 * (min_x + max_x);
                         //particles->qxx[cell] = 0.0;
@@ -1115,18 +1115,18 @@ __global__ void TreeNS::Kernel::buildTree(Tree *tree, Particles *particles, inte
 #endif
 #endif
                             particles->mass[cell] += particles->mass[bodyIndex + offset];
-                            /**
+/**
 #if QUADRUPOLE
-#if DIM == 3
+//#if DIM == 3
                             particles->qxx[cell] += particles->qxx[bodyIndex + offset];
-//#if DIM > 1
+#if DIM > 1
                             particles->qxy[cell] += particles->qxy[bodyIndex + offset];
                             particles->qyy[cell] += particles->qyy[bodyIndex + offset];
-//#if DIM == 3
+#if DIM == 3
                             particles->qxz[cell] += particles->qxz[bodyIndex + offset];
                             particles->qyz[cell] += particles->qyz[bodyIndex + offset];
                             particles->qzz[cell] += particles->qzz[bodyIndex + offset];
-//#endif
+#endif
 #endif
 #endif **/
                         }

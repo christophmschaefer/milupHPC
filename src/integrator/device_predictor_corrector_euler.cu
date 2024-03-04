@@ -161,9 +161,9 @@ namespace PredictorCorrectorEulerNS {
                 //}
                 particles->vx[i] = particles->vx[i] + dt/2 * (predictor->ax[i] + particles->ax[i] + 2 * particles->g_ax[i]);
                 //if (i == 12) { //(i % 1000 == 0) {
-                //    printf("corrector: vx[%i] = %e + %e/2 * (%e + %e + 2 * %e)\n", i, particles->vx[i], dt, predictor->ax[i],
-                //           particles->ax[i], particles->g_ax);
-                //}
+                    //printf("corrector: vx[%i] = %e + %e/2 * (%e + %e + 2 * %e)\n", i, particles->vx[i], dt, predictor->ax[i],
+                    //       particles->ax[i], particles->g_ax);
+               // }
                 particles->ax[i] = 0.5 * (predictor->ax[i] + particles->ax[i]) + particles->g_ax[i];
                 //if (i == 12) { //(i % 1000 == 0) {
                 //    printf("corrector: ax[%i] = 1/2 * (%e + %e) + %e)\n", i, predictor->ax[i], particles->ax[i], particles->g_ax);
