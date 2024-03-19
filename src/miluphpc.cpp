@@ -2805,17 +2805,7 @@ real Miluphpc::parallel_sph() {
                                              particleTotalSendLength);
     sendParticles(d_collectedEntries, &particleHandler->d_ay[numParticlesLocal], particleSendLengths,
                   particleReceiveLengths);
-    // qxy & qyy
-    /**
-    CudaUtils::Kernel::Launch::collectValues(d_particles2SendIndices, particleHandler->d_qxy, d_collectedEntries,
-                                             particleTotalSendLength);
-    sendParticles(d_collectedEntries, &particleHandler->d_qxy[numParticlesLocal], particleSendLengths,
-                  particleReceiveLengths);
-    CudaUtils::Kernel::Launch::collectValues(d_particles2SendIndices, particleHandler->d_qyy, d_collectedEntries,
-                                             particleTotalSendLength);
-    sendParticles(d_collectedEntries, &particleHandler->d_qyy[numParticlesLocal], particleSendLengths,
-                  particleReceiveLengths);
-    **/
+
 #if DIM == 3
     // z-entry particle exchange
     CudaUtils::Kernel::Launch::collectValues(d_particles2SendIndices, particleHandler->d_z, d_collectedEntries,
@@ -2849,37 +2839,6 @@ real Miluphpc::parallel_sph() {
     **/
 #endif
 #endif
-
-#if QUADRUPOLE
-    CudaUtils::Kernel::Launch::collectValues(d_particles2SendIndices, particleHandler->d_qxx, d_collectedEntries,
-                                             particleTotalSendLength);
-    sendParticles(d_collectedEntries, &particleHandler->d_qxx[numParticlesLocal], particleSendLengths,
-                  particleReceiveLengths);
-#if DIM > 1
-    CudaUtils::Kernel::Launch::collectValues(d_particles2SendIndices, particleHandler->d_qxy, d_collectedEntries,
-                                             particleTotalSendLength);
-    sendParticles(d_collectedEntries, &particleHandler->d_qxy[numParticlesLocal], particleSendLengths,
-                  particleReceiveLengths);
-    CudaUtils::Kernel::Launch::collectValues(d_particles2SendIndices, particleHandler->d_qyy, d_collectedEntries,
-                                             particleTotalSendLength);
-    sendParticles(d_collectedEntries, &particleHandler->d_qyy[numParticlesLocal], particleSendLengths,
-                  particleReceiveLengths);
-#if DIM == 3
-    CudaUtils::Kernel::Launch::collectValues(d_particles2SendIndices, particleHandler->d_qxz, d_collectedEntries,
-                                             particleTotalSendLength);
-    sendParticles(d_collectedEntries, &particleHandler->d_qxz[numParticlesLocal], particleSendLengths,
-                  particleReceiveLengths);
-    CudaUtils::Kernel::Launch::collectValues(d_particles2SendIndices, particleHandler->d_qyz, d_collectedEntries,
-                                             particleTotalSendLength);
-    sendParticles(d_collectedEntries, &particleHandler->d_qyz[numParticlesLocal], particleSendLengths,
-                  particleReceiveLengths);
-    CudaUtils::Kernel::Launch::collectValues(d_particles2SendIndices, particleHandler->d_qzz, d_collectedEntries,
-                                             particleTotalSendLength);
-    sendParticles(d_collectedEntries, &particleHandler->d_qzz[numParticlesLocal], particleSendLengths,
-                  particleReceiveLengths);
-#endif
-#endif
-#endif // QUADRUPOLE
 
     // mass-entry particle exchange
     CudaUtils::Kernel::Launch::collectValues(d_particles2SendIndices, particleHandler->d_mass, d_collectedEntries,
