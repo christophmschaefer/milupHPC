@@ -40,6 +40,8 @@ typedef int idInteger;
 #define POW_DIM power_two(DIM)
 
 /// [0]: no computation for quadrupole moments, [1]: use of quadrupole corrections
+/// only works with leapfrog integrator [2]
+
 #define QUADRUPOLE 1
 
 /// [0]: natural units, [1]: SI units

@@ -248,20 +248,7 @@ void Miluphpc::prepareSimulation() {
     //cuda::copy(particleHandler->h_noi, particleHandler->d_noi, numParticles, To::device);
     //cuda::copy(particleHandler->h_cs, particleHandler->d_cs, numParticles, To::device);
 #endif
-/**
-// I changes this from numParticles to numParticlesLocal
-#if QUADRUPOLE
-    cuda::copy(particleHandler->h_qxx, particleHandler->d_qxx, numParticles, To::device);
-#if DIM > 1
-    cuda::copy(particleHandler->h_qxy, particleHandler->d_qxy, numParticles, To::device);
-    cuda::copy(particleHandler->h_qyy, particleHandler->d_qyy, numParticles, To::device);
-#if DIM == 3
-    cuda::copy(particleHandler->h_qxz, particleHandler->d_qxz, numParticles, To::device);
-    cuda::copy(particleHandler->h_qyz, particleHandler->d_qyz, numParticles, To::device);
-    cuda::copy(particleHandler->h_qzz, particleHandler->d_qzz, numParticles, To::device);
-#endif
-#endif
-#endif // QUADRUPOLE **/
+
     if (simulationParameters.removeParticles) {
         removeParticles();
     }
@@ -611,7 +598,7 @@ real Miluphpc::reset() {
 #endif
 #endif
 
-#if QUADRUPOLE // fixed numParticlesLocal instead of numParticles
+#if QUADRUPOLE
     cuda::set(particleHandler->d_qxx, (real)0., numParticles);
 #if DIM > 1
     cuda::set(particleHandler->d_qxy, (real)0., numParticles);
@@ -781,7 +768,6 @@ real Miluphpc::assignParticles() {
 #endif
 
 #if QUADRUPOLE
-    // added if (arrangeAll)
     if (arrangeAll) {
         time += arrangeParticleEntries(d_particlesProcess, d_particlesProcessSorted, particleHandler->d_qxx,
                                        d_tempEntry);
@@ -2056,7 +2042,7 @@ real Miluphpc::parallel_gravity() {
 
 #endif
 #endif
-/**
+
 #if QUADRUPOLE
 
     CudaUtils::Kernel::Launch::collectValues(d_pseudoParticles2SendIndices, particleHandler->d_qxx, d_collectedEntries,
@@ -2124,7 +2110,7 @@ real Miluphpc::parallel_gravity() {
                   particleReceiveLengths);
 #endif
 #endif
-#endif // QUADRUPOLE **/
+#endif // QUADRUPOLE
 
     // mass-entry pseudo-particle exchange
     CudaUtils::Kernel::Launch::collectValues(d_pseudoParticles2SendIndices, particleHandler->d_mass, d_collectedEntries,
@@ -2782,13 +2768,7 @@ real Miluphpc::parallel_sph() {
                                              particleTotalSendLength);
     sendParticles(d_collectedEntries, &particleHandler->d_ax[numParticlesLocal], particleSendLengths,
                   particleReceiveLengths);
-    // qxx quadrupole particle exchange
-    /**
-    CudaUtils::Kernel::Launch::collectValues(d_particles2SendIndices, particleHandler->d_qxx, d_collectedEntries,
-                                             particleTotalSendLength);
-    sendParticles(d_collectedEntries, &particleHandler->d_qxx[numParticlesLocal], particleSendLengths,
-                  particleReceiveLengths);
-     **/
+
 #if DIM > 1
     // y-entry particle exchange
     CudaUtils::Kernel::Launch::collectValues(d_particles2SendIndices, particleHandler->d_y, d_collectedEntries,
@@ -2822,21 +2802,7 @@ real Miluphpc::parallel_sph() {
                                              particleTotalSendLength);
     sendParticles(d_collectedEntries, &particleHandler->d_az[numParticlesLocal], particleSendLengths,
                   particleReceiveLengths);
-    // qxz & qyz & qzz
-    /**
-    CudaUtils::Kernel::Launch::collectValues(d_particles2SendIndices, particleHandler->d_qxz, d_collectedEntries,
-                                             particleTotalSendLength);
-    sendParticles(d_collectedEntries, &particleHandler->d_qxz[numParticlesLocal], particleSendLengths,
-                  particleReceiveLengths);
-    CudaUtils::Kernel::Launch::collectValues(d_particles2SendIndices, particleHandler->d_qyz, d_collectedEntries,
-                                             particleTotalSendLength);
-    sendParticles(d_collectedEntries, &particleHandler->d_qyz[numParticlesLocal], particleSendLengths,
-                  particleReceiveLengths);
-    CudaUtils::Kernel::Launch::collectValues(d_particles2SendIndices, particleHandler->d_qzz, d_collectedEntries,
-                                             particleTotalSendLength);
-    sendParticles(d_collectedEntries, &particleHandler->d_qzz[numParticlesLocal], particleSendLengths,
-                  particleReceiveLengths);
-    **/
+
 #endif
 #endif
 
@@ -3704,19 +3670,6 @@ real Miluphpc::particles2file(int step) {
     std::vector<real> rho, p, e, sml, cs;
     std::vector<integer> noi;
 #endif
-/**
-#if QUADRUPOLE
-    std::vector<real> qxx;
-#if DIM > 1
-    std::vector<real> qxy;
-    std::vector<real> qyy;
-#if DIM == 3
-    std::vector<real> qxz;
-    std::vector<real> qyz;
-    std::vector<real> qzz;
-#endif
-#endif
-#endif **/
 
     Logger(INFO) << "copying particles ...";
 
@@ -3762,19 +3715,6 @@ real Miluphpc::particles2file(int step) {
         mass.push_back(particleHandler->h_mass[i]);
         particleProc.push_back(subDomainKeyTreeHandler->h_subDomainKeyTree->rank);
         //Logger(INFO) << "mass[" << i << "] = " << mass[i];
-/**
-#if QUADRUPOLE
-        qxx.push_back(particleHandler->h_qxx[i]);
-#if DIM > 1
-        qxy.push_back(particleHandler->h_qxy[i]);
-        qyy.push_back(particleHandler->h_qyy[i]);
-#if DIM == 3
-        qxz.push_back(particleHandler->h_qxz[i]);
-        qyz.push_back(particleHandler->h_qyz[i]);
-        qzz.push_back(particleHandler->h_qzz[i]);
-#endif
-#endif
-#endif // QUADRUPOLE **/
 
 #if SPH_SIM
         rho.push_back(particleHandler->h_rho[i]);

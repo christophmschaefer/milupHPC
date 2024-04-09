@@ -894,39 +894,19 @@ __global__ void TreeNS::Kernel::buildTree(Tree *tree, Particles *particles, inte
             if (particles->mass[bodyIndex + offset] != 0) {
                 //particles->x[temp] += particles->weightedEntry(bodyIndex + offset, Entry::x);
                 atomicAdd(&particles->x[temp], particles->weightedEntry(bodyIndex + offset, Entry::x));
-                //atomicAdd(&particles->qxx[temp], particles->qxx[bodyIndex + offset]);
 #if DIM > 1
                 //particles->y[temp] += particles->weightedEntry(bodyIndex + offset, Entry::y);
                 atomicAdd(&particles->y[temp], particles->weightedEntry(bodyIndex + offset, Entry::y));
-                //atomicAdd(&particles->qxx[temp], particles->qxx[bodyIndex + offset]);
-                //atomicAdd(&particles->qxy[temp], particles->qxy[bodyIndex + offset]);
-                //atomicAdd(&particles->qyy[temp], particles->qyy[bodyIndex + offset]);
 #if DIM == 3
                 //particles->z[temp] += particles->weightedEntry(bodyIndex + offset, Entry::z);
                 atomicAdd(&particles->z[temp], particles->weightedEntry(bodyIndex + offset, Entry::z));
-                //atomicAdd(&particles->qxz[temp], particles->qxz[bodyIndex + offset]);
-                //atomicAdd(&particles->qyz[temp], particles->qyz[bodyIndex + offset]);
-                //atomicAdd(&particles->qzz[temp], particles->qzz[bodyIndex + offset]);
 #endif
 #endif
             }
 
             //particles->mass[temp] += particles->mass[bodyIndex + offset];
             atomicAdd(&particles->mass[temp], particles->mass[bodyIndex + offset]);
-/**
-#if QUADRUPOLE
-//#if DIM == 3
-            atomicAdd(&particles->qxx[temp], particles->qxx[bodyIndex + offset]);
-#if DIM > 1
-            atomicAdd(&particles->qxy[temp], particles->qxy[bodyIndex + offset]);
-            atomicAdd(&particles->qyy[temp], particles->qyy[bodyIndex + offset]);
-#if DIM == 3
-            atomicAdd(&particles->qxz[temp], particles->qxz[bodyIndex + offset]);
-            atomicAdd(&particles->qyz[temp], particles->qyz[bodyIndex + offset]);
-            atomicAdd(&particles->qzz[temp], particles->qzz[bodyIndex + offset]);
-#endif
-#endif
-#endif **/
+
 #endif // COMPUTE_DIRECTLY
 
             atomicAdd(&tree->count[temp], 1);
@@ -998,15 +978,10 @@ __global__ void TreeNS::Kernel::buildTree(Tree *tree, Particles *particles, inte
 #if DIM > 1
                         particles->y[cell] += particles->weightedEntry(childIndex, Entry::y);
                         //particles->y[cell] += particles->weightedEntry(childIndex, Entry::y);
-                         //particles->qxx[cell] += particles->qxx[childIndex];
-                         //particles->qxy[cell] += particles->qxy[childIndex];
-                         //particles->qyy[cell] += particles->qyy[childIndex];
+
 #if DIM == 3
                         particles->z[cell] += particles->weightedEntry(childIndex, Entry::z);
                         //particles->z[cell] += particles->weightedEntry(childIndex, Entry::z);
-                        //particles->qxz[cell] += particles->qxz[childIndex];
-                        //particles->qyz[cell] += particles->qyz[childIndex];
-                        //particles->qzz[cell] += particles->qzz[childIndex];
 #endif
 #endif
 
@@ -1017,36 +992,15 @@ __global__ void TreeNS::Kernel::buildTree(Tree *tree, Particles *particles, inte
                         //}
 
                         particles->mass[cell] += particles->mass[childIndex];
-/**
-#if QUADRUPOLE
-//#if DIM == 3
-                        particles->qxx[cell] += particles->qxx[childIndex];
-#if DIM > 1
-                        particles->qxy[cell] += particles->qxy[childIndex];
-                        particles->qyy[cell] += particles->qyy[childIndex];
-#if DIM == 3
-                        particles->qxz[cell] += particles->qxz[childIndex];
-                        particles->qyz[cell] += particles->qyz[childIndex];
-                        particles->qzz[cell] += particles->qzz[childIndex];
-#endif
-#endif
-#endif
-#else // COMPUTE_DIRECTLY **/
+
                         //particles->x[cell] = particles->x[childIndex];
                         particles->x[cell] = 0.5 * (min_x + max_x);
-                        //particles->qxx[cell] = 0.0;
 #if DIM > 1
                         //particles->y[cell] = particles->y[childIndex];
                         particles->y[cell] = 0.5 * (min_y + max_y);
-                        //particles->qxx[cell] = 0.0;
-                        //particles->qxy[cell] = 0.0;
-                        //particles->qyy[cell] = 0.0;
 #if DIM == 3
                         //particles->z[cell] = particles->z[childIndex];
                         particles->z[cell] = 0.5 * (min_z + max_z);
-                        //particles->qxz[cell] = 0.0;
-                        //particles->qyz[cell] = 0.0;
-                        //particles->qzz[cell] = 0.0;
 #endif
 #endif
 
@@ -1103,32 +1057,12 @@ __global__ void TreeNS::Kernel::buildTree(Tree *tree, Particles *particles, inte
 #if DIM > 1
                             //particles->y[cell] += particles->weightedEntry(bodyIndex + offset, Entry::y);
                             particles->y[cell] += particles->weightedEntry(bodyIndex + offset, Entry::y);
-                            //particles->qxx[cell] += particles->qxx[bodyIndex + offset];
-                            //particles->qxy[cell] += particles->qxy[bodyIndex + offset];
-                            //particles->qyy[cell] += particles->qyy[bodyIndex + offset];
 #if DIM == 3
                             //particles->z[cell] += particles->weightedEntry(bodyIndex + offset, Entry::z);
                             particles->z[cell] += particles->weightedEntry(bodyIndex + offset, Entry::z);
-                            //particles->qxz[cell] += particles->qxz[bodyIndex + offset];
-                            //particles->qyz[cell] += particles->qyz[bodyIndex + offset];
-                            //particles->qzz[cell] += particles->qzz[bodyIndex + offset];
 #endif
 #endif
                             particles->mass[cell] += particles->mass[bodyIndex + offset];
-/**
-#if QUADRUPOLE
-//#if DIM == 3
-                            particles->qxx[cell] += particles->qxx[bodyIndex + offset];
-#if DIM > 1
-                            particles->qxy[cell] += particles->qxy[bodyIndex + offset];
-                            particles->qyy[cell] += particles->qyy[bodyIndex + offset];
-#if DIM == 3
-                            particles->qxz[cell] += particles->qxz[bodyIndex + offset];
-                            particles->qyz[cell] += particles->qyz[bodyIndex + offset];
-                            particles->qzz[cell] += particles->qzz[bodyIndex + offset];
-#endif
-#endif
-#endif **/
                         }
 #endif // COMPUTE_DIRECTLY
                         tree->count[cell] += tree->count[bodyIndex + offset];
@@ -1480,7 +1414,6 @@ __global__ void TreeNS::Kernel::prepareSorting(Tree *tree, Particles *particles,
     }
 }
 
-// probably i should also update this function to caluclate the mass quadrupole tensor for all non-leaf nodes
 __global__ void TreeNS::Kernel::calculateCentersOfMass(Tree *tree, Particles *particles, integer n, integer level) {
 
     int bodyIndex = threadIdx.x + blockIdx.x * blockDim.x;
@@ -1497,24 +1430,7 @@ __global__ void TreeNS::Kernel::calculateCentersOfMass(Tree *tree, Particles *pa
     register real z;
 #endif
 #endif
-    /**
-#if QUADRUPOLE
-#if DIM == 3
-    register real qx;
-    register real qxx;
-//#if DIM > 1
-    register real qy;
-    register real qxy;
-    register real qyy;
-//#if DIM == 3
-    register real qz;
-    register real qr2;
-    register real qxz;
-    register real qyz;
-    register real qzz;
-//#endif
-#endif
-#endif **/
+
 
     while ((bodyIndex + offset) < *tree->index) {
 
@@ -1536,20 +1452,7 @@ __global__ void TreeNS::Kernel::calculateCentersOfMass(Tree *tree, Particles *pa
             z = 0.; //particles->z[i] = 0.;
 #endif
 #endif
-/**
-#if QUADRUPOLE
-#if DIM == 3
-            qxx = 0.;
-//#if DIM > 1
-            qxy = 0.;
-            qyy = 0.;
-//#if DIM == 3
-            qxz = 0.;
-            qyz = 0.;
-            qzz = 0.;
-//#endif
-#endif
-#endif **/
+
             // loop over children and add contribution (*=position(child) * mass(child))
             #pragma unroll
             for (int child = 0; child < POW_DIM; ++child) {
@@ -1563,20 +1466,7 @@ __global__ void TreeNS::Kernel::calculateCentersOfMass(Tree *tree, Particles *pa
 #endif
 #endif
                     mass += particles->mass[tree->child[index]];
-                    /**
-#if QUADRUPOLE
-#if DIM == 3
-                    qxx += particles->qxx[tree->child[index]];
-//#if DIM > 1
-                    qxy += particles->qxy[tree->child[index]];
-                    qyy += particles->qyy[tree->child[index]];
-//#if DIM == 3
-                    qxz += particles->qxz[tree->child[index]];
-                    qyz += particles->qyz[tree->child[index]];
-                    qzz += particles->qzz[tree->child[index]];
-//#endif
-#endif
-#endif **/
+
                 }
             }
 
