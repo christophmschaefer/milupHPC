@@ -223,7 +223,7 @@ namespace SPH {
                                 else if (cuda::math::abs(dx) < interactionDistance) {
 #elif DIM == 2
                                 else if (cuda::math::abs(dx) < interactionDistance &&
-                                     cuda::math::abs(dy) < interactionDistance) { // TO DO: Maybe add "|| particles->nodeType[childIndex] >= 1" like for 3D
+                                     cuda::math::abs(dy) < interactionDistance) {
 #else
                             else if (/*tree->child[POW_DIM * nodeIndex + childNumber] != -1 && */  // need to check, since there are nodes without any leaves as children
                                      /*(childNumber == currentChildNumber[depth-1] && nodeIndex == currentNodeIndex[depth-1]) &&*/  //TODO: just a fix, why is this happening at all?

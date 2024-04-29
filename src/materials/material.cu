@@ -10,6 +10,7 @@ CUDA_CALLABLE_MEMBER Material::~Material() {
 }
 
 CUDA_CALLABLE_MEMBER void Material::info() {
+    // TODO: Maybe add switch or #if, #else, ... to only print relevant paramters
     printf("Material: ID                                        = %i\n", ID);
     printf("Material: interactions                              = %i\n", interactions);
     printf("Material: alpha                                     = %f\n", artificialViscosity.alpha);
@@ -50,13 +51,13 @@ CUDA_CALLABLE_MEMBER ArtificialViscosity::ArtificialViscosity() : alpha(0.0), be
 CUDA_CALLABLE_MEMBER ArtificialViscosity::ArtificialViscosity(real alpha, real beta) : alpha(alpha), beta(beta) {
 
 }
-// TODO: Add Artificial Stress?
+// TODO: Add Artificial Stress? not necessary
 
-// TODO: Modify? for other EOS
+// TODO: Modify? for other EOS, not necessary
 CUDA_CALLABLE_MEMBER EqOfSt::EqOfSt() : type(0), polytropic_K(0.), polytropic_gamma(0.) {
 
 }
-// TODO: Modify? for other EOS
+// TODO: Modify? for other EOS, not necessary
 CUDA_CALLABLE_MEMBER EqOfSt::EqOfSt(int type, real polytropic_K, real polytropic_gamma) : type(type),
                             polytropic_K(polytropic_K), polytropic_gamma(polytropic_gamma) {
 

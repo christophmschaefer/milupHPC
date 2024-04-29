@@ -198,6 +198,7 @@ __global__ void SPH::Kernel::internalForces(::SPH::SPH_kernel kernel, Material *
 #if INTEGRATE_SML
         particles->dsmldt[i] = 0.0;
 #endif
+// ad dSdt to be set to zero?
 
         // if particle has no interactions continue and set all derivs to zero
         // but not the accels (these are handled in the tree for gravity)
@@ -461,8 +462,7 @@ __global__ void SPH::Kernel::internalForces(::SPH::SPH_kernel kernel, Material *
 #endif // SPH_EQU_VERSION
 #if ARTIFICIAL_STRESS
 #if (SPH_EQU_VERSION == 1)
-                    arts_rij = R_i[d][dd] / (particles->rho[i]*particles->rho[i])
-                    + R_j[d][dd] / (particles->rho[j]*particles->rho[j]);
+                    arts_rij = R_i[d][dd] / (particles->rho[i]*particles->rho[i]) + R_j[d][dd] / (particles->rho[j]*particles->rho[j]);
 #elif (SPH_EQU_VERSION == 2)
                     arts_rij = ( R_i[d][dd] + R_j[d][dd] ) / (particles->rho[i]*particles->rho[j]);
 #endif
@@ -620,7 +620,7 @@ __global__ void SPH::Kernel::internalForces(::SPH::SPH_kernel kernel, Material *
 #endif // DIM > 1
 #pragma unroll
         for (d = 0; d < DIM; d++) {
-//            // like elastics paper
+//            // add rotation rate (see also Gray et al., 2001, SPH elastic dynamics)
 //            dSxx += S_i[0][d] * rdot[0][d] + rdot[0][d] * S_i[d][0];
 //#if DIM > 1
 //            dSxy += S_i[0][d] * rdot[1][d] + rdot[0][d] * S_i[d][1];
@@ -631,7 +631,7 @@ __global__ void SPH::Kernel::internalForces(::SPH::SPH_kernel kernel, Material *
 //#endif // DIM > 1
 //#endif // DIM  == 3
 
-            // like milupcuda paper
+            // subtract rotation rate (see Schafer et al., 2020, A versatile smoothed particle hydrodynamics code for graphic cards)
             dSxx += S_i[0][d] * rdot[d][0] - rdot[0][d] * S_i[d][0];
 #if DIM > 1
             dSxy += S_i[0][d] * rdot[d][1] - rdot[0][d] * S_i[d][1];

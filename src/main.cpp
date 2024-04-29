@@ -310,7 +310,6 @@ int main(int argc, char** argv)
     profiler.createValueDataSet<real>(ProfilerIds::Time::SPH::resend, 1);
     profiler.createValueDataSet<real>(ProfilerIds::Time::SPH::internalForces, 1);
     profiler.createValueDataSet<real>(ProfilerIds::Time::SPH::repairTree, 1);
-    // TODO: add for other parameters? like drhodt or sigma? oder uber internal forces abgedeckt?
 #endif
     profiler.createValueDataSet<real>(ProfilerIds::Time::integrate, 1);
     profiler.createValueDataSet<real>(ProfilerIds::Time::IO, 1);

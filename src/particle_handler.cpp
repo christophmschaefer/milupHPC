@@ -806,7 +806,6 @@ void ParticleHandler::setPointer(IntegratedParticleHandler *integratedParticleHa
                      h_sml, h_nnl, h_noi, h_e, h_dedt, h_cs, h_rho, h_p);
     ParticlesNS::Kernel::Launch::set(d_particles, d_numParticles, d_numNodes, d_mass, d_x, d_y, d_vx, d_vy, d_ax, d_ay,
                                      d_level, d_uid, d_materialId, d_sml, d_nnl, d_noi, d_e, d_dedt, d_cs, d_rho, d_p);
-// TODO: Missing #if SPH with dependencies, this is only in 3D covered - check again
 #else
     h_particles->set(&numParticles, &numNodes, h_mass, h_x, h_y, h_z, h_vx, h_vy, h_vz, h_ax, h_ay, h_az,
                      h_level, h_uid, h_materialId, h_sml, h_nnl, h_noi, h_e, h_dedt, h_cs, h_rho, h_p);
@@ -1040,7 +1039,7 @@ void ParticleHandler::copyDistribution(To::Target target, bool velocity, bool ac
 }
 
 void ParticleHandler::copySPH(To::Target target) {
-    //copy only quantities which are written to file (so far only used in miluhpc::particles2file(int step))
+    // copy only quantities which are written to file (so far this function is only used in miluhpc::particles2file(int step))
     int length = numParticles;
     cuda::copy(h_rho, d_rho, length, target);
     cuda::copy(h_p, d_p, length, target);

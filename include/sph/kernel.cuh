@@ -177,11 +177,9 @@ namespace SPH {
     }
 
 
-    //TODO: implement:
     /**
      * @brief Calculates the kernel for the tensile instability fix (Monaghan 2000).
      *
-     * @todo implement `fixTensileInstability()`.
      *
      * @param kernel
      * @param particles

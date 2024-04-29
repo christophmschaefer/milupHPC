@@ -1156,14 +1156,6 @@ CUDA_CALLABLE_MEMBER void IntegratedParticles::reset(integer index) {
 #endif // DIM == 3
 #endif // DIM > 1
 #endif
-/*#if SOLID || NAVIER_STOKES
-    // TODO: add variables to be resetted
-    for(int i = 0; i < DIM; i++){
-        for( int j = 0; j < DIM; j++){
-            sigma[index*Pa]
-        }
-    }
-#endif*/
 #endif
 }
 

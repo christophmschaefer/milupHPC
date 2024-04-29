@@ -43,7 +43,7 @@ namespace KeyNS {
 #else
     __device__ const unsigned char DirTable[4][4] =
             {{1,2,0,0},
-             {0,1,3,1}, // src/../include/subdomain_key_tree/tree.cuh(44): error: expected a declaration
+             {0,1,3,1},
              {2,0,2,3},
              {3,3,1,2}};
 #endif // __CUDACC__

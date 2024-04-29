@@ -466,7 +466,7 @@ public:
      * @param localStrain
      */
     CUDA_CALLABLE_MEMBER void setSolid(real *Sxx, real *Sxy, real *Syy,real *dSdtxx, real *dSdtxy, real* dSdtyy,  real *localStrain);
-#endif //DIM == 2
+#endif // DIM == 2
 #if DIM == 3
     /**
      * @brief Setter, in dependence of `SOLID`(`DIM = 3`)
@@ -1279,23 +1279,6 @@ namespace IntegratedParticlesNS {
 #endif // DIM == 3
 #endif // SOLID
 
-#if SOLID || NAVIER_STOKES
-        __global__ void setSolidNavierStokes(IntegratedParticles *integratedParticles, real *sigma);
-
-        namespace Launch {
-
-            void setSolidNavierStokes(IntegratedParticles *integratedParticles, real *sigma);
-
-        }
-#endif
-#if ARTIFICIAL_STRESS
-        __global__ void setArtificialStress(IntegratedParticles *integratedParticles, real *R);
-
-        namespace Launch {
-
-            void setArtificialStress(IntegratedParticles *integratedParticles, real *R);
-        }
-#endif
     }
 }
 

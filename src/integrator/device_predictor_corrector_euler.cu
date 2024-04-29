@@ -182,10 +182,6 @@ namespace PredictorCorrectorEulerNS {
 // TODO: some SPH flag?
 #if INTEGRATE_DENSITY
                 particles->rho[i] = particles->rho[i] + dt/2 * (predictor->drhodt[i] + particles->drhodt[i]);
-//                if (i == 1) { //(i % 1000 == 0) {
-//                    printf("CORRECTOR: rho[%i] = %e + %e/2 * (%e + %e)\n", i, particles->rho[i], dt, predictor->drhodt[i],
-//                           particles->drhodt[i]);
-//                }
                 particles->drhodt[i] = 0.5 * (predictor->drhodt[i] + particles->drhodt[i]);
 
 #else
@@ -215,9 +211,6 @@ namespace PredictorCorrectorEulerNS {
 #endif
 #if SOLID
                 particles->Sxx[i] = particles->Sxx[i] + dt/2* (predictor->dSdtxx[i] + particles->dSdtxx[i]);
-//                if(i == 1){
-//                   printf("CORRECTOR: Sxx: %e, dSxx: %e, dSxxpred: %e, Sxxpred: %e, dt: %e \n",particles->Sxx[i],particles->dSdtxx[i], predictor->dSdtxx[i], predictor->Sxx[i], dt );
-//                }
                 particles->dSdtxx[i] = 0.5 * (particles->dSdtxx[i] + predictor->dSdtxx[i]);
 
 #if DIM > 1
@@ -264,10 +257,6 @@ namespace PredictorCorrectorEulerNS {
 // TODO: some SPH flag?
 #if INTEGRATE_DENSITY
                 predictor->rho[i] = particles->rho[i] + dt * particles->drhodt[i];
-//                if(i == 1){
-//                    printf("PREDICTOR: rho: %e, drho: %e, rhopred: %e ,dt: %e \n",particles->rho[i],particles->drhodt[i], predictor->rho[i], dt );
-//                }
-                //predictor->drhodt[i] = particles->drhodt[i];
 #else
                 //predictor->rho[i] = particles->rho[i];
 #endif
@@ -289,9 +278,6 @@ namespace PredictorCorrectorEulerNS {
 #endif
 #if SOLID
                 predictor->Sxx[i] = particles->Sxx[i] + dt * particles->dSdtxx[i];
-//               if(i == 1){
-//                   printf("PREDICTOR: Sxx: %e, dSxx: %e, Sxxpred: %e, dt: %e \n",particles->Sxx[i],particles->dSdtxx[i], predictor->Sxx[i], dt );
-//                }
 #if DIM > 1
                 predictor->Sxy[i] = particles->Sxy[i] + dt * particles->dSdtxy[i];
                 predictor->Syy[i] = particles->Syy[i] + dt * particles->dSdtyy[i];
@@ -328,7 +314,7 @@ namespace PredictorCorrectorEulerNS {
          */
         __global__ void setTimeStep(SimulationTime *simulationTime, Material *materials, Particles *particles,
                                     BlockShared *blockShared, int *blockCount, real searchRadius, int numParticles) {
-
+// TODO: add restrictions for dSdt
 #define SAFETY_FIRST 0.1
 
             __shared__ real sharedForces[NUM_THREADS_LIMIT_TIME_STEP];
