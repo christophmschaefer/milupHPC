@@ -14,7 +14,7 @@ dim = 3
 r_inner = 3.0
 r_outer = 4.0
 
-width = 3  # width of cylinders will be width*delta_p
+width = 10  # width of cylinders will be width*delta_p
 
 # particle spacing
 delta_p = 0.1
@@ -33,14 +33,17 @@ delta_p = 0.1
 # 0.001 --> 2 * 21.991.108 particles
 
 # shift of the cylinders from origin on x-axis
-shift = 6    # for delta_p <= 0.1
+# shift = 6    # for delta_p <= 0.1
+shift = 5
 # shift = 4.75  # for delta_p <= 0.05
 # shift = 4.85 # for delta_p <= 0.01, 0.005, 0.001
+# shift = 4.2
 
 # projected speed
-v_p = 0.059
+v_p = 0.015 # 0.059
 
 density = 1
+
 mass = delta_p**dim * density
 
 # create initial distribution through creating a 2d grid with dims 2*r_outer x 2*r_outer
@@ -96,6 +99,7 @@ for i in range(N_square):
     if arr[i] == 1:
         r_ring[counter, 0] = r[i, 0] - shift # normal
         r_ring[counter, 1] = r[i, 1]  # normal
+        r_ring[counter, 2] = 0
 
 
         # r_ring[counter, 0] = r[i, 0] + shift # second quandrant
@@ -110,6 +114,7 @@ for i in range(N_square):
     if arr[i] == 1:
         r_ring2[counter, 0] = r[i, 0] + shift  # normal
         r_ring2[counter, 1] = r[i, 1]  # normal
+        r_ring2[counter, 2] = 0
 
         # r_ring2[counter, 0] = r[i, 0] + 2.5*shift # second quadrant
         # r_ring2[counter, 0] = r[i, 0] - shift #first quadrant

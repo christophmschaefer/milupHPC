@@ -16,13 +16,13 @@ if __name__ == "__main__":
     parser.add_argument("--output", "-o", metavar="str", type=str, help="output directory",
                         nargs="?", default="output")
     parser.add_argument("--globalmaxmin", "-f", metavar="str", type=str, help="find global max and min from data - set to yes if needed",
-                        nargs="?", default="no")
+                        nargs="?", default="yes")
 
     args = parser.parse_args()
 
     i = 0
-    _min = 0.85
-    _max = 1.15
+    _min = 0.95
+    _max = 1.05
 
 if(args.globalmaxmin == "yes"):
     for h5file in sorted(glob.glob(os.path.join(args.data, "*.h5")), key=os.path.basename):
@@ -49,7 +49,7 @@ for h5file in sorted(glob.glob(os.path.join(args.data, "*.h5")), key=os.path.bas
     fig = plt.figure(dpi=500)
     ax = fig.add_subplot()  # projection='3d' for 3D plot
 
-    p = ax.scatter(positions[:, 0], positions[:, 1], c=density, marker="o", s=0.05, vmin=_min,
+    p = ax.scatter(positions[:, 0], positions[:, 1], c=density, marker="o", s=0.005, vmin=_min,
                    vmax=_max)  # , r[:, 2] for 3d, vmin, vmax set the min/max for the colorbar
     ax.set_xlabel('X')
     ax.set_ylabel('Y')

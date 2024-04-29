@@ -16,7 +16,7 @@ if __name__ == "__main__":
     parser.add_argument("--output", "-o", metavar="str", type=str, help="output directory",
                         nargs="?", default="output")
     parser.add_argument("--globalmaxmin", "-f", metavar="str", type=str, help="find global max and min from data - set to yes if needed",
-                        nargs="?", default="no")
+                        nargs="?", default="yes")
 
     args = parser.parse_args()
 
