@@ -47,6 +47,7 @@ see also [MPI_Versions.md](MPI_Versions.md)
 | Boost           | Boost Software License 1.0 | config file parsing, C++ wrapper for MPI | [boost.org](https://www.boost.org/) |
 
 * `<boost version>` e.g. `1_78_0`
+* `</usr>` corresponds to the storage location
 
 ```
 $ wget https://boostorg.jfrog.io/artifactory/main/release/1.78.0/source/boost_<boost version>.tar.gz
@@ -56,7 +57,7 @@ $ ./bootstrap.sh --with-libraries=all
 $ vim project-config.jam
 $ >> using mpi ;
 $ ./b2
-$ ./b2 install --prefix=/usr
+$ ./b2 install --prefix=</usr>
 ```
 
 ### HighFive
@@ -65,7 +66,13 @@ $ ./b2 install --prefix=/usr
 | --------------- | ----------------- | ----------------- | ------------------ |
 | HighFive        | Boost Software License 1.0 | C++ wrapper for parallel HDF5 | [github.com/BlueBrain/HighFive](https://github.com/BlueBrain/HighFive) |
 
-* `git clone https://github.com/BlueBrain/HighFive.git`
+* `git clone https://github.com/BlueBrain/HighFive.git --branch v2.4.1`
+* To set the version manually `git checkout -b v2.4.1`
+```
+$ git clone https://github.com/BlueBrain/HighFive.git
+$ cd HighFive
+$ git checkout -b v2.4.1
+```
 
 
 ### CUDA cub
@@ -76,8 +83,13 @@ $ ./b2 install --prefix=/usr
 | --------------- | ----------------- | ----------------- | ------------------ |
 | CUDA cub        | BSD 3-Clause "New" or "Revised" License | device wide parallel primitives | [github.com/NVIDIA/cub](https://github.com/NVIDIA/cub) |
 
-* `git clone https://github.com/NVIDIA/cub.git`
-	* in dependence of used CUDA Toolkit e.g. `git checkout 1.8.0` 
+* `git clone https://github.com/NVIDIA/cub.git --branch v1.8.0`
+	* in dependence of used CUDA Toolkit e.g. `git checkout -b v1.8.0`
+```
+$ git clone https://github.com/NVIDIA/cub.git
+$ cd cub
+$ git checkout -b v1.8.0
+```
 
 
 ### Cxxopts
@@ -96,12 +108,13 @@ $ ./b2 install --prefix=/usr
 | libconfig       |  LGPL-2.1 | material config parsing| [github.io/libconfig](http://hyperrealm.github.io/libconfig/) |
 
 * `<libconfig version>` e.g. `1.7.3`
+* `</usr>` corresponds to the storage location
 
 ```
 $ wget http://hyperrealm.github.io/libconfig/dist/libconfig-<libconfig version>.tar.gz
 $ tar zxvf libconfig-<libconfig version>.tar.gz
 $ cd libconfig-<libconfig version>
-$ ./configure --prefix=/usr
+$ ./configure --prefix=</usr>
 $ make
 $ make install
 ```
@@ -114,6 +127,7 @@ $ make install
 | HDF5            | HDF5 License (BSD-Style) | parallel HDF5 for I/O operations | [hdf5group.org](https://www.hdfgroup.org/solutions/hdf5/) |
 
 * refer to [realease_docs](https://github.com/HDFGroup/hdf5/tree/develop/release_docs) and build parallel
+* `</usr>` corresponds to the storage location
 
 e.g.:
 
@@ -121,7 +135,7 @@ e.g.:
 $ wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.12/hdf5-1.12.2/src/hdf5-1.12.2.tar.gz
 $ tar -zxvf hdf5-1.12.0.tar.gz
 $ cd hdf5
-$ CC=mpicc CXX=mpic++ ./configure --prefix=/usr --enable-parallel --enable-hl
+$ CC=mpicc CXX=mpic++ ./configure --prefix=</usr> --enable-parallel --enable-hl
 $ make install
 ```
 
@@ -138,13 +152,13 @@ For postprocessing purposes several scripts are available. Some of those scripts
 	* and packages: numpy, matplotlib, ...
 
 #### ffmpeg
-
+* `</usr/local/bin/>` corresponds to the storage location
 ```
 $ sudo wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz
 $ sudo wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz.md5
 $ md5sum -c ffmpeg-release-amd64-static.tar.xz.md5
 $ sudo tar xvf ffmpeg*.xz
 $ cd ffmpeg-*-static
-$ sudo ln -s "${PWD}/ffmpeg" /usr/local/bin/
-$ sudo ln -s "${PWD}/ffprobe" /usr/local/bin/
+$ sudo ln -s "${PWD}/ffmpeg" </usr/local/bin/>
+$ sudo ln -s "${PWD}/ffprobe" </usr/local/bin/>
 ```
