@@ -3,7 +3,7 @@ CXX            := mpic++
 NVCC           := nvcc
 
 #Target binary
-TARGET         := runner
+TARGET         := miluphpc
 
 #Directories
 SRCDIR         := ./src
@@ -15,7 +15,7 @@ IDEASDIR       := ./ideas
 TESTDIR        := ./test
 DOCDIR         := ./doc
 DOCUMENTSDIR   := ./documents
-CUDADIR        := /opt/bwhpc/common/devel/cuda/10.1
+CUDADIR        := ${CUDA_DIR}
 
 SRCEXT         := cpp
 CUDASRCEXT     := cu
@@ -23,14 +23,15 @@ DEPEXT         := d
 OBJEXT         := o
 
 #Flags, Libraries and Includes
-CXXFLAGS       += -std=c++11 -w -I/opt/bwhpc/common/mpi/openmpi/4.1.1-gnu-8.3/include -I/opt/bwhpc/common/lib/hdf5/1.12.0-openmpi-4.1-gnu-8.3/include -I${HOME}/local/include#-I/usr/include/hdf5/openmpi#-O3
-NVFLAGS        := --std=c++11 -x cu -c -dc -w -Xcompiler "-pthread" -Wno-deprecated-gpu-targets -O3 -L/opt/bwhpc/common/lib/hdf5/1.12.0-openmpi-4.1-gnu-8.3/lib -L${HOME}/lib -L/opt/bwhpc/common/mpi/openmpi/4.1.1-gnu-8.3/lib -I/opt/bwhpc/common/mpi/openmpi/4.1.1-gnu-8.3/include  -lboost_filesystem -lboost_system -lhdf5#-I/opt/openmpi-4.1.0/include -I/usr/include/hdf5/openmpi
-LFLAGS         += -lm -L$(CUDADIR)/lib64 -L${HOME}/local/lib -lcudart -lpthread -lconfig -L/opt/bwhpc/common/devel/cuda/10.1/lib -L/opt/bwhpc/common/mpi/openmpi/4.1.1-gnu-8.3/lib -L${HOME}/local/lib -L/opt/bwhpc/common/lib/hdf5/1.12.0-openmpi-4.1-gnu-8.3/lib -lboost_atomic -lboost_serialization -lboost_mpi -lmpi -lhdf5 -lboost_filesystem -lboost_system
+CXXFLAGS       += -std=c++11 -w -I${HDF5_INC_DIR} -I${HOME}/local/include -I${MPI_INC_DIR} -I${boost_INC_DIR}
+#NVFLAGS        := --std=c++11 -x cu -c -allow-unsupported-compiler -dc -w -Xcompiler "-pthread" -Wno-deprecated-gpu-targets -O3 -L -L${HOME}/lib -lboost_filesystem -lboost_system -lhdf5
+NVFLAGS        := --std=c++11 -x cu -c -dc -w -Xcompiler "-pthread" -Wno-deprecated-gpu-targets -O3 -I${HDF5_INC_DIR} -I${HOME}/local/include -I${MPI_INC_DIR} -I${boost_INC_DIR}
+LFLAGS         += -lm -L$(CUDADIR)/lib64 -lcudart -lpthread -lconfig -L${HOME}/local/lib -L${MPI_LIB_DIR} -L${boost_LDLIB_DIR} -L${HDF5_LIB_DIR} -lboost_atomic -lboost_serialization  -lmpi -lhdf5 -lboost_filesystem -lboost_system -lboost_mpi
 GPU_ARCH       := -arch=sm_37#sm_52
 CUDALFLAGS     := -dlink
 CUDALINKOBJ    := cuLink.o #needed?
-LIB            := #-lboost_mpi -lboost_serialization
-INC            := -I/opt/bwhpc/common/lib/boost/1.69.0/include -I$(INCDIR) -I${HOME}/local/include -I$(CUDADIR)/include #-I/opt/openmpi-4.1.0/include -I/usr/local/Headeronly/ #-L/opt/openmpi-4.1.0/lib -lmpi #-I/usr/local/include
+LIB            := 
+INC            := -I$(INCDIR) -I${HOME}/local/include -I$(CUDADIR)/include  -I${MPI_INC_DIR} -I${HFD5_INC_DIR} -I${boost_INC_DIR}
 INCDEP         := -I$(INCDIR)
 
 #Source and Object files
